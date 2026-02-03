@@ -54,6 +54,7 @@ int main() {
 
 
     std::cout << "\nVectors:\n";
+    
     // vector er et array med dynamisk størrelse. Findes også i std namespace. Eksempel på en vector af heltal:
     std::vector<int> myVector = {1, 2, 3, 4, 5}; //initialiseret med 5 elementer
 

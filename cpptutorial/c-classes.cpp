@@ -76,6 +76,13 @@ public: // offentlige medlemmer (tilgængelige udefra)
 }; // semicolon fordi idk
 
 int main() {
+
+    Point2D myPoint;
+    myPoint.x = 4;
+    myPoint.y = 5;
+
+    myPoint.print();
+
     // opret et 5x5 gitter
     Grid2D grid(5);
 
