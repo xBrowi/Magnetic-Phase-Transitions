@@ -1,32 +1,25 @@
-#include <iostream>
+#include "MonteCarlo2D.hpp"
+#include "lattices2D.hpp"
+
 #include <vector>
-
-
-
-// laver klasse til objekter (to integers)
-struct point2D {
-    int x,y;
-
-    void print() {
-        std::cout << "Point2D(" << x << ", " << y << ")\n";
-    }
-};
-
-
-
-
-
-
+#include <iostream>
+#include <random>
 
 int main() {
-    point2D p{2,4};
-
-    p.print();
+    int latticeSize = 30;
+    double temperature = 100;
+    std::mt19937 rng{std::random_device{}()};
+    std::uniform_real_distribution<double> distReal{0.0, 1.0};
     
+    
+    SquareLattice2D lattice(latticeSize);
+    lattice.print();
+    MCStep2D(lattice,temperature, rng, distReal);
+    lattice.print();
+    lattice.randomize();
+    lattice.print();
+    
+
+
     return 0;
 }
-
-
-
-
-

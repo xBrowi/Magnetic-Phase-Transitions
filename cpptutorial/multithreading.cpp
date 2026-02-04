@@ -12,6 +12,7 @@ void threadFunction(int threadID, std::mutex& mtx) {
         std::cout << "Thread " << threadID << " is starting." << std::endl;
     }
 
+
     // Simulate some work with sleep
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     
@@ -30,8 +31,8 @@ int main() {
 
     // Create and launch threads
     for (int i = 0; i < numThreads; ++i) {
-        threadFunction(i + 1, mtx);
-        //threads.emplace_back(threadFunction, i + 1, std::ref(mtx));
+        //threadFunction(i + 1, mtx);
+        threads.emplace_back(threadFunction, i + 1, std::ref(mtx));
     }
 
     // Join threads to the main thread
