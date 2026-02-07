@@ -16,6 +16,18 @@ struct Point2D
     }
 };
 
+struct measurement2D
+{
+    int step;
+    double magnetization;
+};
+
+enum class LatticeType2D
+{
+    Square,
+    FunkySquare
+};
+
 struct interaction2D
 {
     Point2D neighbor;
@@ -29,6 +41,7 @@ class Lattice2D
 protected:
     // Jeg tror, man normalt kalder spins for spinConfig. Værd at overveje navneskift
     int size;
+    int step;
     std::vector<std::vector<int>> spins;
 
     // Random number generator (rng)
@@ -41,6 +54,7 @@ public:
     Lattice2D(int sizeArg)
     {
         size = sizeArg;
+        step = 0;
         spins = std::vector<std::vector<int>>(sizeArg, std::vector<int>(sizeArg, 1));
         distCoord = std::uniform_int_distribution<int>(0, size - 1);
     }
@@ -66,6 +80,17 @@ public:
                 spin = (distReal(rng) < 0.5) ? -1 : 1;
             }
         }
+        step = 0;
+    }
+
+    void stepForward()
+    {
+        step++;
+    }
+
+    int getStep()
+    {
+        return step;
     }
 
     // Flip spin ved et givent koordinat
@@ -109,6 +134,22 @@ public:
         }
     }
 
+    double magnetization() {
+        int totalSpin = 0;
+        for (const std::vector<int> &row : spins) {
+            for (const int &spin : row) {
+                totalSpin += spin;
+            }
+        }
+
+        return static_cast<double>(totalSpin) / (size*size);
+    }
+    
+    measurement2D measure()
+    {
+        return measurement2D{step, magnetization()};
+    }
+
     virtual std::vector<interaction2D> getInteractions(Point2D p) = 0;
     virtual double deltaH(Point2D p) = 0;
 };
@@ -125,12 +166,72 @@ public:
 
         if (p.x > 0)
             interactions.push_back(interaction2D{Point2D{p.x - 1, p.y}, J});
+        else if (p.x == 0)
+            interactions.push_back(interaction2D{Point2D{size - 1, p.y}, J}); // Periodic boundary 
+
         if (p.x < size - 1)
             interactions.push_back(interaction2D{Point2D{p.x + 1, p.y}, J});
+        else if (p.x == size - 1)
+            interactions.push_back(interaction2D{Point2D{0, p.y}, J}); // Periodic boundary
+
         if (p.y > 0)
             interactions.push_back(interaction2D{Point2D{p.x, p.y - 1}, J});
+        else if (p.y == 0)
+            interactions.push_back(interaction2D{Point2D{p.x, size - 1}, J}); // Periodic boundary
+
         if (p.y < size - 1)
             interactions.push_back(interaction2D{Point2D{p.x, p.y + 1}, J});
+        else if (p.y == size - 1)
+            interactions.push_back(interaction2D{Point2D{p.x, 0}, J}); // Periodic boundary
+
+        return interactions;
+    }
+
+    double deltaH(Point2D p) override
+    {
+        double H = 0;
+
+        for (const interaction2D &interaction : getInteractions(p))
+        {
+            H -= getSpin(interaction.neighbor) * interaction.J; // Her mangler p's eget spin, som skal indgå i beregningen af dH
+        }
+
+        double dH = -2 * getSpin(p) * H;
+
+        return dH;
+    }
+};
+
+
+class FunkySquareLattice2D : public Lattice2D
+{
+public:
+    FunkySquareLattice2D(int sizeArg) : Lattice2D(sizeArg) {}
+
+    std::vector<interaction2D> getInteractions(Point2D p) override
+    {
+        std::vector<interaction2D> interactions;
+        double J = 1; // Interaction strength in units of k_B (J/k_B)
+
+        if (p.x > 0)
+            interactions.push_back(interaction2D{Point2D{p.x - 1, p.y}, J});
+        else if (p.x == 0)
+            interactions.push_back(interaction2D{Point2D{size - 1 - p.y, size - 1}, J}); // Funky boundary 
+
+        if (p.x < size - 1)
+            interactions.push_back(interaction2D{Point2D{p.x + 1, p.y}, J});
+        else if (p.x == size - 1)
+            interactions.push_back(interaction2D{Point2D{size - 1 - p.y, 0}, J}); // Funky boundary
+
+        if (p.y > 0)
+            interactions.push_back(interaction2D{Point2D{p.x, p.y - 1}, J});
+        else if (p.y == 0)
+            interactions.push_back(interaction2D{Point2D{size - 1, size - 1 - p.x}, J}); // Funky boundary
+
+        if (p.y < size - 1)
+            interactions.push_back(interaction2D{Point2D{p.x, p.y + 1}, J});
+        else if (p.y == size - 1)
+            interactions.push_back(interaction2D{Point2D{0, size - 1 - p.x}, J}); // Funky boundary
 
         return interactions;
     }
