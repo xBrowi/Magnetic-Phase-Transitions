@@ -1,5 +1,5 @@
-#include "core/MonteCarlo2D.hpp"
-#include "core/Lattices2D.hpp"
+#include "../core/MonteCarlo2D.hpp"
+#include "../core/Lattices2D.hpp"
 
 #include <vector>
 #include <iostream>
