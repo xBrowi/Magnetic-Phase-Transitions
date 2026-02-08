@@ -1,5 +1,5 @@
-#include "MonteCarlo2D.hpp"
-#include "lattices2D.hpp"
+#include "../core/MonteCarlo2D.hpp"
+#include "../core/Lattices2D.hpp"
 
 #include <vector>
 #include <iostream>
@@ -8,8 +8,8 @@
 
 int main() 
 {
-    std::ofstream outFile("magnetization.csv");
-    std::ofstream tempFile("temperatures.csv");
+    std::ofstream outFile("output/magnetization.csv");
+    std::ofstream tempFile("output/temperatures.csv");
 
     std::vector<MCParameters> paramsList;
 

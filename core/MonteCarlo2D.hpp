@@ -1,7 +1,7 @@
 #ifndef MONTECARLO_HPP
 #define MONTECARLO_HPP
 
-#include "lattices2D.hpp"
+#include "Lattices2D.hpp"
 
 #include <vector>
 #include <iostream>
