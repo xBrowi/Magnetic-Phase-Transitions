@@ -16,18 +16,21 @@ struct Point2D
     }
 };
 
+//A measurement class for storing the results of MC simulations at a timestep.
 struct measurement2D
 {
     long int step;
     double magnetization;
 };
 
+//identifier for various 2D lattice types
 enum class LatticeType2D
 {
     Square,
     FunkySquare
 };
 
+//an interaction class, storing the neighbors coordinates and the coupling strength
 struct interaction2D
 {
     Point2D neighbor;
@@ -83,11 +86,6 @@ public:
         step = 0;
     }
 
-    void stepForward()
-    {
-        step++;
-    }
-
     long int getStep()
     {
         return step;
@@ -97,6 +95,7 @@ public:
     void flipSpin(Point2D p)
     {
         spins[p.x][p.y] *= -1;
+        step++;
     }
 
     // Vælger et tilfældigt koordinat

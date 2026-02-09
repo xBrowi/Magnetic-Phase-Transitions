@@ -1,11 +1,12 @@
+#include "Lattices2D.hpp"
 
 #include <vector>
 
 // Function to compute the sizes of clusters in a 2D lattice
 template <typename Lattice>
-std::vector<int> ClusterSizes(const Lattice& lattice) {
+std::vector<int> ClusterSizes(Lattice& lattice) {
     // Get the size of the lattice
-    int L = lattice.Size();
+    int L = lattice.getSize();
     
     // Initialize visited vector to keep track of visited sites
     std::vector<bool> visited(L * L, false);
@@ -38,14 +39,14 @@ std::vector<int> ClusterSizes(const Lattice& lattice) {
             cluster_size++;
 
             // Check all neighbors of the current point
-            for (auto n : lattice.neighbors(p))
+            for (auto interaction : lattice.getInteractions(p))
                 {
+                    Point2D n = interaction.neighbor;
                     // Calculate the index of the neighbor (1D)
                     int nidx = n.x * L + n.y;
                     
                     // If the neighbor has the same spin and has not been visited, add it to the stack
-                    if (!visited[nidx] &&
-                        lattice.getSpin(n) == spin)
+                    if (!visited[nidx] && lattice.getSpin(n) == spin)
                     {
                         // Mark the neighbor as visited and add it to the stack
                         visited[nidx] = true;
