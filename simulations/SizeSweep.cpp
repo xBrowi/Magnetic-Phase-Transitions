@@ -5,21 +5,24 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <chrono>
 
 int main() 
 {
+    auto startTime = std::chrono::high_resolution_clock::now();
+
     std::ofstream outFile("output/magnetizationSize.csv");
     std::ofstream sizeFile("output/sizes.csv");
 
     std::vector<MCParameters> paramsList;
 
-    for (int s = 25; s < 126; s += 5)
+    for (int s = 25; s < 222; s += 7)
     {
         MCParameters params;
         params.latticeType = LatticeType2D::FunkySquare;
         params.size = s;
         params.temperature = 2.25;
-        params.totalStepCount = 2e9;
+        params.totalStepCount = 5e9;
         params.measurementInterval = 10000;
         params.randomize = true;
         params.printProgress = false;
@@ -47,6 +50,10 @@ int main()
 
     outFile.close();
     sizeFile.close();
+
+    auto endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = endTime - startTime;
+    std::cout << "Simulation completed in " << elapsed.count() << " seconds.\n";
 
     return 0;
 }

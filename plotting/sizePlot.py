@@ -5,13 +5,13 @@ import matplotlib.colors as mcolors
 from scipy.optimize import curve_fit
 
 
-sizes = np.loadtxt("sizes.csv", delimiter=",", skiprows=0)
+sizes = np.loadtxt("output/sizes.csv", delimiter=",", skiprows=0)
 #sizes = sizes[sizes >100]
-data = np.loadtxt("magnetizationSize.csv", delimiter=",", skiprows=1)
+data = np.loadtxt("output/magnetizationSize.csv", delimiter=",", skiprows=1)
 data = np.abs(data)  # Tag den absolutte værdi af magnetiseringen
 
 # Normalisering af temperaturintervallet
-'''
+
 norm = mcolors.Normalize(vmin=min(sizes), vmax=max(sizes))
 cmap = cm.viridis
 
@@ -56,7 +56,7 @@ plt.title("Average Magnetization vs Size")
 plt.grid()
 plt.savefig("avg_magnetization_vs_size.png", dpi=300)
 plt.show()
-'''
+
 
 
 
@@ -71,12 +71,13 @@ for s in sizes:
     magnetization_guess = bin_centers[np.argmax(bins)]
     magnetization_guesses.append(magnetization_guess)
     plt.axvline(x=magnetization_guess, color='k', linestyle='--')
-    plt.legend()
 
 plt.xlabel("Magnetization")
 plt.ylabel("Frequency")
 plt.title("Histogram of Magnetization Values")
 plt.grid()
+# plt.legend()
+plt.savefig("magnetization_histograms.png", dpi=300)
 plt.show()
 
 plt.plot(sizes, magnetization_guesses, marker='o')
@@ -84,6 +85,7 @@ plt.xlabel("Size")
 plt.ylabel("Magnetization Guess")
 plt.title("Magnetization Guess vs Size")
 plt.grid()
+plt.savefig("magnetization_guess_vs_size.png", dpi=300)
 plt.show()
 
 
@@ -109,6 +111,7 @@ plt.axhline(y=b, color='green', linestyle='--', label=f"Extrapolated Magnetizati
 
 plt.legend()
 
+plt.savefig("magnetization_guess_vs_1_over_size.png", dpi=300)
 plt.show()
 
 print(magnetization_guesses)
