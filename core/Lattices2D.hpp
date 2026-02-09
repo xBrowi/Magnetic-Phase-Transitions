@@ -73,6 +73,11 @@ public:
         return spins[p.x][p.y];
     }
 
+    void stepForward()
+    {
+        step++;
+    }
+
     // initialisér med tilfældige spins
     void randomize()
     {
@@ -95,7 +100,6 @@ public:
     void flipSpin(Point2D p)
     {
         spins[p.x][p.y] *= -1;
-        step++;
     }
 
     // Vælger et tilfældigt koordinat
