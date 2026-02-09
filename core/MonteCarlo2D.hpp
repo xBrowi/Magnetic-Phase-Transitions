@@ -8,6 +8,7 @@
 #include <random>
 #include <cmath>
 #include <thread>
+#include <mutex>
 
 
 struct MCParameters
@@ -15,8 +16,8 @@ struct MCParameters
     LatticeType2D latticeType;
     int size;
     double temperature;
-    int totalStepCount;
-    int measurementInterval;
+    long int totalStepCount;
+    long int measurementInterval;
     bool randomize = true;
     bool printProgress = false;
 };
@@ -39,6 +40,12 @@ void MCStep2D(Lattice2D &lattice, double T, std::mt19937 &rng, std::uniform_real
     }
 
     lattice.stepForward();
+}
+
+inline std::mutex& mcPrintMutex()
+{
+    static std::mutex mtx;
+    return mtx;
 }
 
 std::vector<measurement2D> runMCSimulation(const MCParameters& params)
@@ -66,13 +73,14 @@ std::vector<measurement2D> runMCSimulation(const MCParameters& params)
         lattice->randomize();
     }
 
-    for (int i = 0; i < params.totalStepCount; i++)
+    for (long int i = 0; i < params.totalStepCount; i++)
     {
         MCStep2D(*lattice, params.temperature, rng, distReal);
         if (i % params.measurementInterval == 0)
         {
             measurements.push_back(lattice->measure());
             if (params.printProgress) {
+                std::lock_guard<std::mutex> lock(mcPrintMutex());
                 lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20);
                 std::cout << "Step: " << i << ", Magnetization: " << lattice->magnetization() << "\n";
             }
@@ -80,8 +88,14 @@ std::vector<measurement2D> runMCSimulation(const MCParameters& params)
 
         if (i % (params.totalStepCount / 50) == 0)
         {
+            std::lock_guard<std::mutex> lock(mcPrintMutex());
             std::cout << "Progress: " << (100.0 * i / params.totalStepCount) << "%\n";
         }
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mcPrintMutex());
+        std::cout << "Simulation complete for T = " << params.temperature << ", size = " << params.size << "\n";
     }
 
     delete lattice;

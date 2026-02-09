@@ -18,7 +18,7 @@ struct Point2D
 
 struct measurement2D
 {
-    int step;
+    long int step;
     double magnetization;
 };
 
@@ -41,7 +41,7 @@ class Lattice2D
 protected:
     // Jeg tror, man normalt kalder spins for spinConfig. Værd at overveje navneskift
     int size;
-    int step;
+    long int step;
     std::vector<std::vector<int>> spins;
 
     // Random number generator (rng)
@@ -88,7 +88,7 @@ public:
         step++;
     }
 
-    int getStep()
+    long int getStep()
     {
         return step;
     }

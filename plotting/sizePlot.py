@@ -7,7 +7,6 @@ from scipy.optimize import curve_fit
 
 sizes = np.loadtxt("sizes.csv", delimiter=",", skiprows=0)
 #sizes = sizes[sizes >100]
-# emperatures = temperatures[temperatures < 2.5]  # Fjern eventuelle negative eller nul temperaturer
 data = np.loadtxt("magnetizationSize.csv", delimiter=",", skiprows=1)
 data = np.abs(data)  # Tag den absolutte værdi af magnetiseringen
 

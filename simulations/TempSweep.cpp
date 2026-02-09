@@ -13,15 +13,15 @@ int main()
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 1.5; T <= 3; T += 0.01)
+    for (double T = 1.9; T <= 2.5; T += 0.02)
     {
         MCParameters params;
         params.latticeType = LatticeType2D::FunkySquare;
-        params.size = 100;
+        params.size = 200;
         params.temperature = T;
-        params.totalStepCount = 1e8;
+        params.totalStepCount = 5e9;
         params.measurementInterval = 10000;
-        params.randomize = false;
+        params.randomize = true;
         params.printProgress = false;
 
         paramsList.push_back(params);
