@@ -31,6 +31,20 @@ int main()
         paramsList.push_back(params);
     }
 
+    for (double T = 2.25; T <= 2.35; T += 0.005)
+    {
+        MCParameters params;
+        params.latticeType = LatticeType2D::FunkySquare;
+        params.size = 200;
+        params.temperature = T;
+        params.totalStepCount = 5e9;
+        params.measurementInterval = 10000;
+        params.randomize = true;
+        params.printProgress = false;
+
+        paramsList.push_back(params);
+    }
+
     std::vector<std::vector<measurement2D>> allMeasurements = runParallelMCSimulation(paramsList);
 
     // Write results to CSV
