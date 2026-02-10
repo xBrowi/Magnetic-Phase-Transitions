@@ -46,7 +46,7 @@ cbar.ax.invert_yaxis()
 
 
 plt.savefig("magnetization_plot.png", dpi=300)
-plt.show()
+#plt.show()
 
 plt.plot(temperatures, avg_magnetizations, marker='o')
 plt.xlabel("Temperature")
@@ -54,7 +54,7 @@ plt.ylabel("Average Magnetization (last 80% of steps)")
 plt.title("Average Magnetization vs Temperature")
 plt.grid()
 plt.savefig("avg_magnetization_vs_temperature.png", dpi=300)
-plt.show()
+#plt.show()
 
 
 
@@ -87,7 +87,7 @@ plt.title("Magnetization Distribution for Different Temperatures")
 plt.grid()
 plt.savefig("magnetization_distribution.png", dpi=300)
 # plt.legend()
-plt.show()
+#plt.show()
 
 plt.plot(temperatures, magnetization_guesses, marker='o')
 plt.xlabel("Temperature")
@@ -95,7 +95,7 @@ plt.ylabel("Most Probable Magnetization")
 plt.title("Most Probable Magnetization vs Temperature")
 plt.grid()
 plt.savefig("most_probable_magnetization_vs_temperature.png", dpi=300)
-plt.show()
+#plt.show()
 
 
 # even more signal processing - kde
@@ -127,7 +127,7 @@ plt.savefig("magnetization_kde.png", dpi=300)
 for x in kdemaxes:
     plt.axvline(x=x, color='k', linestyle='--')
 
-plt.show()
+#plt.show()
 
 plt.plot(temperatures, kdemaxes, marker='o')
 plt.xlabel("Temperature")
@@ -135,7 +135,7 @@ plt.ylabel("Most Probable Magnetization (KDE)")
 plt.title("Most Probable Magnetization (KDE) vs Temperature")
 plt.grid()
 plt.savefig("most_probable_magnetization_kde_vs_temperature.png", dpi=300)
-plt.show()
+#plt.show()
 
 
 # kdeplot
@@ -156,4 +156,4 @@ plt.show()
 # plt.grid()
 # plt.savefig("magnetization_kde.png", dpi=300)
 # # plt.legend()
-# plt.show()
+# #plt.show()
