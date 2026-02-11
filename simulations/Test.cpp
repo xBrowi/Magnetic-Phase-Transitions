@@ -16,7 +16,7 @@ int main() {
     params.latticeType = LatticeType2D::FunkySquare;
     params.size = 10;
     params.temperature = 2;
-    params.B = 0;
+    params.B = -50;
     params.totalStepCount = 1e3;
     params.measurementInterval = 1e2;
     params.randomize = true;
@@ -26,13 +26,13 @@ int main() {
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
 
     Lattice2D *lattice;
-    lattice = new FunkySquareLattice2D(params.size);
+    lattice = new FunkySquareLattice2D(params.size, params.B);
 
-    lattice->randomize();
+    // lattice->randomize();
 
     lattice->print();
 
-    for (int i = 0;i<1e3;i++)
+    for (int i = 0;i<1e4;i++)
     {
         MCStep2D(*lattice,params.temperature,rng,distReal);
     }
