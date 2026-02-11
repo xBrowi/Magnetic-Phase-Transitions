@@ -26,18 +26,12 @@ int main() {
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
 
     Lattice2D *lattice;
-    lattice = new FunkySquareLattice2D(params.size, params.B);
+    lattice = new TriangleLattice2D(params.size, params.B);
 
     
     lattice->randomize();
-
-
     lattice->print();
 
-    double meanSizebefore = meanClusterSize(ClusterSizes(*lattice));
-
-    std::cout << "Mean cluster size: " << meanSizebefore << "\n";
-    
     for (int i = 0;i<10;i++)
     {
         MCStep2D(*lattice,params.temperature,rng,distReal);
@@ -45,9 +39,16 @@ int main() {
 
     lattice->print();
 
-    double meanSize = meanClusterSize(ClusterSizes(*lattice));
+    Point2D p = lattice->getRandomCoord();
+    std::vector<interaction2D> interactions = lattice->getInteractions(p);
 
-    std::cout << "Mean cluster size: " << meanSize << "\n";
+    std::cout << "current point: " << p.x << "," << p.y << std::endl;
+    std::cout << "neighboring points: "; 
+    for (interaction2D i : interactions) {
+        std::cout << i.neighbor.x << "," << i.neighbor.y << " ";
+    }
+    std::cout << std::endl;
+
 
     return 0;
 }

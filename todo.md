@@ -1,4 +1,3 @@
-
 interaktivt display
 
 Fourierificering
@@ -16,7 +15,7 @@ tage stilling til naboer
 3D grid (kubisk, tetraeder)
 
 korrelation over afstand
-    -Cluster Analysis
+    -Cluster Analysis ELLER FFTW
 
 
 
