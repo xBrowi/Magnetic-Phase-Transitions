@@ -1,7 +1,13 @@
+
+interaktivt display
+
 runtime analysis
     -optimal steps between measurement
     -optimering?
-    -2Dsweep
+    
+2Dsweep
+
+Fourierificering
 
 frustreret grid (trekant, tetraeder)
 
