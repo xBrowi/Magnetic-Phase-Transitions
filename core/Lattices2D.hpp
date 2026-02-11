@@ -244,6 +244,7 @@ public:
     virtual double deltaH(Point2D p) = 0;
 };
 
+//square structure with normal periodic boundary conditions
 class SquareLattice2D : public Lattice2D
 {
 public:
@@ -277,6 +278,7 @@ public:
     }
 };
 
+//square structure with warped periodic boundary conditions
 class FunkySquareLattice2D : public Lattice2D
 {
 public:
@@ -325,6 +327,7 @@ public:
     }
 };
 
+//triangular structure with normal periodic boundary conditions (J defaults -1, antiferromagnetic)
 class TriangleLattice2D : public Lattice2D
 {
 public:
@@ -333,7 +336,7 @@ public:
     std::vector<interaction2D> getInteractions(Point2D p) override
     {
         std::vector<interaction2D> interactions;
-        double J = 1; // Interaction strength in units of k_B (J/k_B)
+        double J = -1; // Interaction strength in units of k_B (J/k_B)
 
         if (p.x%2==1)
         {
@@ -362,7 +365,7 @@ public:
 
         for (const interaction2D &interaction : getInteractions(p))
         {
-            H -= getSpin(interaction.neighbor) * interaction.J; // Her mangler p's eget spin, som skal indgå i beregningen af dH
+            H -= getSpin(interaction.neighbor) * interaction.J; // Her er p's eget spin faktoriseret ud, se i beregningen af dH
         }
 
         double dH = -2 * getSpin(p) * H;

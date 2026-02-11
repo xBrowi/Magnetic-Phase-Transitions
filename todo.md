@@ -11,15 +11,9 @@ runtime analysis
 
 tage stilling til naboer
     -dedikeret getNeighbors()? i stil med ny SquareLattice
-    -support for more neighbors (virkelig træls med nuværende ifs)
+    -support for more neighbors (virkelig træls med nuværende ifs modulo hjælper måske)
 
-
-
-frustreret grid (trekant, tetraeder)
-
-3D grid (kubisk)
-
-
+3D grid (kubisk, tetraeder)
 
 korrelation over afstand
     -Cluster Analysis
