@@ -28,16 +28,26 @@ int main() {
     Lattice2D *lattice;
     lattice = new FunkySquareLattice2D(params.size, params.B);
 
-    // lattice->randomize();
+    
+    lattice->randomize();
+
 
     lattice->print();
 
+    double meanSizebefore = meanClusterSize(ClusterSizes(*lattice));
+
+    std::cout << "Mean cluster size: " << meanSizebefore << "\n";
+    
     for (int i = 0;i<1e4;i++)
     {
         MCStep2D(*lattice,params.temperature,rng,distReal);
     }
 
     lattice->print();
+
+    double meanSize = meanClusterSize(ClusterSizes(*lattice));
+
+    std::cout << "Mean cluster size: " << meanSize << "\n";
 
     return 0;
 }

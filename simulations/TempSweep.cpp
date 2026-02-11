@@ -59,7 +59,7 @@ int main()
     for (size_t i = 0; i < paramsList.size(); ++i)
     {
         for (const measurement2D& m : allMeasurements[i]) {
-            outFile << paramsList[i].temperature << "," << m.step << "," << m.magnetization << m.meanClusterSize << "\n";
+            outFile << paramsList[i].temperature << "," << m.step << "," << m.magnetization << "," << m.meanClusterSize << "\n";
         }
     }
 
