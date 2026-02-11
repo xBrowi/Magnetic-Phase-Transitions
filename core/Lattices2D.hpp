@@ -254,32 +254,17 @@ public:
         std::vector<interaction2D> interactions;
         double J = 1; // Interaction strength in units of k_B (J/k_B)
 
-        if (p.x > 0)
-            interactions.push_back(interaction2D{Point2D{p.x - 1, p.y}, J});
-        else if (p.x == 0)
-            interactions.push_back(interaction2D{Point2D{size - 1, p.y}, J}); // Periodic boundary 
-
-        if (p.x < size - 1)
-            interactions.push_back(interaction2D{Point2D{p.x + 1, p.y}, J});
-        else if (p.x == size - 1)
-            interactions.push_back(interaction2D{Point2D{0, p.y}, J}); // Periodic boundary
-
-        if (p.y > 0)
-            interactions.push_back(interaction2D{Point2D{p.x, p.y - 1}, J});
-        else if (p.y == 0)
-            interactions.push_back(interaction2D{Point2D{p.x, size - 1}, J}); // Periodic boundary
-
-        if (p.y < size - 1)
-            interactions.push_back(interaction2D{Point2D{p.x, p.y + 1}, J});
-        else if (p.y == size - 1)
-            interactions.push_back(interaction2D{Point2D{p.x, 0}, J}); // Periodic boundary
+        interactions.push_back(interaction2D{Point2D{(p.x+1)%size,p.y}, J});
+        interactions.push_back(interaction2D{Point2D{(p.x-1)%size,p.y}, J});
+        interactions.push_back(interaction2D{Point2D{p.x,(p.y+1)%size}, J});
+        interactions.push_back(interaction2D{Point2D{p.x,(p.y-1)%size}, J});
 
         return interactions;
     }
 
     double deltaH(Point2D p) override
     {
-        double H = -B*getSpin(p);
+        double H = -B;
 
         for (const interaction2D &interaction : getInteractions(p))
         {
@@ -291,7 +276,6 @@ public:
         return dH;
     }
 };
-
 
 class FunkySquareLattice2D : public Lattice2D
 {
@@ -323,6 +307,52 @@ public:
         else if (p.y == size - 1)
             interactions.push_back(interaction2D{Point2D{0, size - 1 - p.x}, J}); // Funky boundary
 
+        return interactions;
+    }
+
+    double deltaH(Point2D p) override
+    {
+        double H = -B;
+
+        for (const interaction2D &interaction : getInteractions(p))
+        {
+            H -= getSpin(interaction.neighbor) * interaction.J; // Her mangler p's eget spin, som skal indgå i beregningen af dH
+        }
+
+        double dH = -2 * getSpin(p) * H;
+
+        return dH;
+    }
+};
+
+class TriangleLattice2D : public Lattice2D
+{
+public:
+    TriangleLattice2D(int sizeArg, double BArg = 0) : Lattice2D(sizeArg, BArg) {}
+
+    std::vector<interaction2D> getInteractions(Point2D p) override
+    {
+        std::vector<interaction2D> interactions;
+        double J = 1; // Interaction strength in units of k_B (J/k_B)
+
+        if (p.x%2==1)
+        {
+            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y+1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y-1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y+1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y-1)%size}, J});
+        }
+        else
+        {
+            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y+1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y-1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y+1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y-1)%size}, J});
+        }
         return interactions;
     }
 

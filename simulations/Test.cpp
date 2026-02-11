@@ -16,7 +16,7 @@ int main() {
     params.latticeType = LatticeType2D::FunkySquare;
     params.size = 10;
     params.temperature = 2;
-    params.B = -50;
+    params.B = 0;
     params.totalStepCount = 1e3;
     params.measurementInterval = 1e2;
     params.randomize = true;
@@ -38,7 +38,7 @@ int main() {
 
     std::cout << "Mean cluster size: " << meanSizebefore << "\n";
     
-    for (int i = 0;i<1e4;i++)
+    for (int i = 0;i<10;i++)
     {
         MCStep2D(*lattice,params.temperature,rng,distReal);
     }
