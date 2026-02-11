@@ -23,7 +23,7 @@ int main()
         params.size = s;
         params.temperature = 2.25;
         params.totalStepCount = 5e9;
-        params.measurementInterval = 10000;
+        params.measurementInterval = 1'000'000;
         params.randomize = true;
         params.printProgress = false;
 
