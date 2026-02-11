@@ -47,6 +47,7 @@ protected:
     int size;
     long int step;
     std::vector<std::vector<int>> spins;
+    double B;
 
     // Random number generator (rng)
     std::mt19937 rng{std::random_device{}()};
@@ -55,9 +56,10 @@ protected:
 
 public:
     // Constructor: initialisér et gitter med alle spins opad (+1)
-    Lattice2D(int sizeArg)
+    Lattice2D(int sizeArg, double argB = 0)
     {
         size = sizeArg;
+        B = argB;
         step = 0;
         spins = std::vector<std::vector<int>>(sizeArg, std::vector<int>(sizeArg, 1));
         distCoord = std::uniform_int_distribution<int>(0, size - 1);
@@ -72,6 +74,16 @@ public:
     int getSpin(Point2D p)
     {
         return spins[p.x][p.y];
+    }
+
+    double getB() 
+    {
+        return B;
+    }
+
+    void setB(double argB)
+    {
+        B = argB;
     }
 
     void stepForward()
@@ -235,7 +247,7 @@ public:
 class SquareLattice2D : public Lattice2D
 {
 public:
-    SquareLattice2D(int sizeArg) : Lattice2D(sizeArg) {}
+    SquareLattice2D(int sizeArg, double BArg = 0) : Lattice2D(sizeArg, BArg) {}
 
     std::vector<interaction2D> getInteractions(Point2D p) override
     {
@@ -267,7 +279,7 @@ public:
 
     double deltaH(Point2D p) override
     {
-        double H = 0;
+        double H = -B*getSpin(p);
 
         for (const interaction2D &interaction : getInteractions(p))
         {
@@ -284,7 +296,7 @@ public:
 class FunkySquareLattice2D : public Lattice2D
 {
 public:
-    FunkySquareLattice2D(int sizeArg) : Lattice2D(sizeArg) {}
+    FunkySquareLattice2D(int sizeArg, double BArg = 0) : Lattice2D(sizeArg, BArg) {}
 
     std::vector<interaction2D> getInteractions(Point2D p) override
     {
@@ -316,7 +328,7 @@ public:
 
     double deltaH(Point2D p) override
     {
-        double H = 0;
+        double H = -B;
 
         for (const interaction2D &interaction : getInteractions(p))
         {

@@ -4,7 +4,7 @@ interaktivt display
 runtime analysis
     -optimal steps between measurement
     -optimering?
-    
+
 2Dsweep
 
 Fourierificering
@@ -15,7 +15,7 @@ frustreret grid (trekant, tetraeder)
 
 support for more neighbors, anti-ferromagnetisk
 
-eksternt magnetfelt
+-Storm eksternt magnetfelt
 
 korrelation over afstand
     -Cluster Analysis

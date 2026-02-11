@@ -16,6 +16,7 @@ struct MCParameters
     LatticeType2D latticeType;
     int size;
     double temperature;
+    double B;
     long int totalStepCount;
     long int measurementInterval;
     bool randomize = true;
