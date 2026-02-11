@@ -17,13 +17,13 @@ int main()
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 1.9; T <= 2.5; T += 0.02)
+    for (double T = 1.9; T <= 2.5; T += 0.1)
     {
         MCParameters params;
         params.latticeType = LatticeType2D::FunkySquare;
         params.size = 200;
         params.temperature = T;
-        params.totalStepCount = 5e9;
+        params.totalStepCount = 1e8;
         params.measurementInterval = 1'000'000;
         params.randomize = true;
         params.printProgress = false;
@@ -31,19 +31,19 @@ int main()
         paramsList.push_back(params);
     }
 
-    for (double T = 2.25; T <= 2.35; T += 0.005)
-    {
-        MCParameters params;
-        params.latticeType = LatticeType2D::FunkySquare;
-        params.size = 200;
-        params.temperature = T;
-        params.totalStepCount = 5e9;
-        params.measurementInterval = 1'000'000;
-        params.randomize = true;
-        params.printProgress = false;
+    // for (double T = 2.25; T <= 2.35; T += 0.005)
+    // {
+    //     MCParameters params;
+    //     params.latticeType = LatticeType2D::FunkySquare;
+    //     params.size = 200;
+    //     params.temperature = T;
+    //     params.totalStepCount = 5e9;
+    //     params.measurementInterval = 1'000'000;
+    //     params.randomize = true;
+    //     params.printProgress = false;
 
-        paramsList.push_back(params);
-    }
+    //     paramsList.push_back(params);
+    // }
 
     std::vector<std::vector<measurement2D>> allMeasurements = runParallelMCSimulation(paramsList);
 
@@ -59,7 +59,7 @@ int main()
     for (size_t i = 0; i < paramsList.size(); ++i)
     {
         for (const measurement2D& m : allMeasurements[i]) {
-            outFile << paramsList[i].temperature << "," << m.step << "," << m.magnetization << "\n";
+            outFile << paramsList[i].temperature << "," << m.step << "," << m.magnetization << m.meanClusterSize << "\n";
         }
     }
 
