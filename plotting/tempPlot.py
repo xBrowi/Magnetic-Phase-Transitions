@@ -46,7 +46,8 @@ cbar.ax.invert_yaxis()
 
 
 plt.savefig("magnetization_plot.png", dpi=300)
-#plt.show()
+
+plt.figure()
 
 plt.plot(temperatures, avg_magnetizations, marker='o')
 plt.xlabel("Temperature")
