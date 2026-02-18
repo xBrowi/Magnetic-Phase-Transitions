@@ -7,7 +7,7 @@
 #include <random>
 #include <chrono>
 
-int main() 
+int main()
 {
     // time the simulation
     auto startTime = std::chrono::high_resolution_clock::now();
@@ -17,18 +17,21 @@ int main()
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 1.9; T <= 2.5; T += 0.1)
+    for (double T = 1.9; T <= 2.5; T += 0.2)
     {
-        MCParameters params;
-        params.latticeType = LatticeType2D::FunkySquare;
-        params.size = 200;
-        params.temperature = T;
-        params.totalStepCount = 1e8;
-        params.measurementInterval = 1'000'000;
-        params.randomize = true;
-        params.printProgress = false;
-
-        paramsList.push_back(params);
+        for (double B = -1; B <= 1; B += 0.5)
+        {
+            MCParameters params;
+            params.latticeType = LatticeType2D::FunkySquare;
+            params.size = 200;
+            params.temperature = T;
+            params.B = B;
+            params.totalStepCount = 1e7;
+            params.measurementInterval = 1'000'000;
+            params.randomize = true;
+            params.printProgress = false;
+            paramsList.push_back(params);
+        }
     }
 
     // for (double T = 2.25; T <= 2.35; T += 0.005)
@@ -48,18 +51,21 @@ int main()
     std::vector<std::vector<measurement2D>> allMeasurements = runParallelMCSimulation(paramsList);
 
     // Write results to CSV
-    for (int i = 0; i < paramsList.size(); ++i){
+    for (int i = 0; i < paramsList.size(); ++i)
+    {
         tempFile << paramsList[i].temperature;
-        if (i < paramsList.size() - 1) {
+        if (i < paramsList.size() - 1)
+        {
             tempFile << ",";
         }
     }
 
-    outFile << "Temperature,Step,Magnetization\n";
+    outFile << "Temperature,ExternalField,Step,Magnetization,MeanClusterSize\n";
     for (size_t i = 0; i < paramsList.size(); ++i)
     {
-        for (const measurement2D& m : allMeasurements[i]) {
-            outFile << paramsList[i].temperature << "," << m.step << "," << m.magnetization << "," << m.meanClusterSize << "\n";
+        for (const measurement2D &m : allMeasurements[i])
+        {
+            outFile << paramsList[i].temperature << "," << paramsList[i].B << "," << m.step << "," << m.magnetization << "," << m.meanClusterSize << "\n";
         }
     }
 

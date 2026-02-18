@@ -10,7 +10,6 @@
 #include <thread>
 #include <mutex>
 
-
 struct MCParameters
 {
     LatticeType2D latticeType;
@@ -43,13 +42,13 @@ void MCStep2D(Lattice2D &lattice, double T, std::mt19937 &rng, std::uniform_real
     lattice.stepForward();
 }
 
-inline std::mutex& mcPrintMutex()
+inline std::mutex &mcPrintMutex()
 {
     static std::mutex mtx;
     return mtx;
 }
 
-std::vector<measurement2D> runMCSimulation(const MCParameters& params)
+std::vector<measurement2D> runMCSimulation(const MCParameters &params)
 {
     std::vector<measurement2D> measurements;
     std::mt19937 rng{std::random_device{}()};
@@ -70,7 +69,8 @@ std::vector<measurement2D> runMCSimulation(const MCParameters& params)
         return measurements;
     }
 
-    if (params.randomize) {
+    if (params.randomize)
+    {
         lattice->randomize();
     }
 
@@ -80,7 +80,8 @@ std::vector<measurement2D> runMCSimulation(const MCParameters& params)
         if (i % params.measurementInterval == 0)
         {
             measurements.push_back(lattice->measure());
-            if (params.printProgress) {
+            if (params.printProgress)
+            {
                 std::lock_guard<std::mutex> lock(mcPrintMutex());
                 lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20);
                 std::cout << "Step: " << i << ", Magnetization: " << lattice->magnetization() << "\n";
@@ -103,12 +104,12 @@ std::vector<measurement2D> runMCSimulation(const MCParameters& params)
     return measurements;
 }
 
-void writeMCResultsToArray(std::vector<std::vector<measurement2D>>& allMeasurements, const MCParameters& params, int index)
+void writeMCResultsToArray(std::vector<std::vector<measurement2D>> &allMeasurements, const MCParameters &params, int index)
 {
     allMeasurements[index] = runMCSimulation(params);
 }
 
-std::vector<std::vector<measurement2D>> runParallelMCSimulation(std::vector<MCParameters>& paramsList)
+std::vector<std::vector<measurement2D>> runParallelMCSimulation(std::vector<MCParameters> &paramsList)
 {
     std::vector<std::vector<measurement2D>> allMeasurements(paramsList.size());
 
@@ -119,7 +120,8 @@ std::vector<std::vector<measurement2D>> runParallelMCSimulation(std::vector<MCPa
         threads.emplace_back(writeMCResultsToArray, std::ref(allMeasurements), std::cref(paramsList[i]), i);
     }
 
-    for (auto& thread : threads) {
+    for (auto &thread : threads)
+    {
         thread.join();
     }
 

@@ -17,8 +17,8 @@ avg_mcss = []
 for T in temperatures:
     plotdata = data[data[:, 0] == T]
     steps = plotdata[:, 1]
-    mcs = plotdata[:, 3] # mean cluster size
-    
+    mcs = plotdata[:, 3]  # mean cluster size
+
     color = cmap(norm(T))
     ax0.plot(steps, mcs, color=color, label=f"T={T}")
 
@@ -29,7 +29,8 @@ for T in temperatures:
 
 ax0.set_xlabel("Monte Carlo Steps")
 ax0.set_ylabel("Mean Cluster Size")
-ax0.set_title("Mean Cluster Size vs Monte Carlo Steps for Different Temperatures")
+ax0.set_title(
+    "Mean Cluster Size vs Monte Carlo Steps for Different Temperatures")
 
 sm = cm.ScalarMappable(norm=norm, cmap=cmap)
 sm.set_array([])
@@ -44,7 +45,8 @@ plt.savefig("clusters_plot.png", dpi=300)
 fig1, ax1 = plt.subplots()
 
 plt.figure()
-ax1.plot(temperatures, avg_mcss, marker='o', color='blue', label='Avg Mean Cluster Size')
+ax1.plot(temperatures, avg_mcss, marker='o',
+         color='blue', label='Avg Mean Cluster Size')
 ax1.set_xlabel("Temperature")
 ax1.set_ylabel("Average Mean Cluster Size (last 80% of steps)")
 ax1.set_title("Average Mean Cluster Size vs Temperature")
@@ -65,18 +67,18 @@ for T in temperatures:
     #     magnetization *= -1
 
     color = cmap(norm(T))
-    #ax2.plot(steps, magnetization, color=color, label=f"T={T}")
+    # ax2.plot(steps, magnetization, color=color, label=f"T={T}")
 
     # calculate the average magnetization for the last 80% of the steps
     last_80_percent = int(0.8 * len(magnetization))
     avg_magnetization = np.mean(abs(magnetization[-last_80_percent:]))
     avg_magnetizations.append(avg_magnetization)
 
-scaled_magnetizations = np.array(avg_magnetizations) / np.max(avg_magnetizations) * np.max(avg_mcss)
+scaled_magnetizations = np.array(
+    avg_magnetizations) / np.max(avg_magnetizations) * np.max(avg_mcss)
 
 
-
-ax2.plot(temperatures, scaled_magnetizations, marker='o', color='red', label='Scaled Avg Magnetization')
+ax2.plot(temperatures, scaled_magnetizations, marker='o',
+         color='red', label='Scaled Avg Magnetization')
 fig1.legend()
-fig1.savefig("avg_mag&cms.png", dpi=300)
-
+fig1.savefig("avg_mag&cms1.png", dpi=300)

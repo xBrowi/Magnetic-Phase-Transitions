@@ -16,7 +16,7 @@ struct Point2D
     }
 };
 
-//A measurement class for storing the results of MC simulations at a timestep.
+// A measurement class for storing the results of MC simulations at a timestep.
 struct measurement2D
 {
     long int step;
@@ -24,14 +24,14 @@ struct measurement2D
     double meanClusterSize;
 };
 
-//identifier for various 2D lattice types
+// identifier for various 2D lattice types
 enum class LatticeType2D
 {
     Square,
     FunkySquare
 };
 
-//an interaction class, storing the neighbors coordinates and the coupling strength
+// an interaction class, storing the neighbors coordinates and the coupling strength
 struct interaction2D
 {
     Point2D neighbor;
@@ -76,7 +76,7 @@ public:
         return spins[p.x][p.y];
     }
 
-    double getB() 
+    double getB()
     {
         return B;
     }
@@ -150,59 +150,66 @@ public:
         }
     }
 
-    double magnetization() {
+    double magnetization()
+    {
         int totalSpin = 0;
-        for (const std::vector<int> &row : spins) {
-            for (const int &spin : row) {
+        for (const std::vector<int> &row : spins)
+        {
+            for (const int &spin : row)
+            {
                 totalSpin += spin;
             }
         }
 
-        return static_cast<double>(totalSpin) / (size*size);
+        return static_cast<double>(totalSpin) / (size * size);
     }
-    
 
-    std::vector<int> ClusterSizes() {
+    std::vector<int> ClusterSizes()
+    {
         // Get the size of the lattice
         int L = getSize();
-        
+
         // Initialize visited vector to keep track of visited sites
         std::vector<bool> visited(L * L, false);
         std::vector<int> cluster_sizes;
 
         // Loop over entire lattice
-        for(int x=0;x<L;x++) {
-            for(int y=0;y<L;y++) {
-            
-            // index of the current site (1D)
-                int idx = x * L + y;
-            
-            // Skip site if it has already been visited
-            if (visited[idx]) continue;
-            
-            // Get the spin of the current site
-            int spin = getSpin({x, y});
-            
-            int cluster_size = 0;
-            
-            // Depth-First Search (DFS) stack
-            std::vector<Point2D> stack;
-            stack.push_back({x, y});
-            visited[idx] = true;
-            
-            // DFS loop
-            while (!stack.empty()) {
-                auto p = stack.back();
-                stack.pop_back();
-                cluster_size++;
+        for (int x = 0; x < L; x++)
+        {
+            for (int y = 0; y < L; y++)
+            {
 
-                // Check all neighbors of the current point
-                for (auto interaction : getInteractions(p))
+                // index of the current site (1D)
+                int idx = x * L + y;
+
+                // Skip site if it has already been visited
+                if (visited[idx])
+                    continue;
+
+                // Get the spin of the current site
+                int spin = getSpin({x, y});
+
+                int cluster_size = 0;
+
+                // Depth-First Search (DFS) stack
+                std::vector<Point2D> stack;
+                stack.push_back({x, y});
+                visited[idx] = true;
+
+                // DFS loop
+                while (!stack.empty())
+                {
+                    auto p = stack.back();
+                    stack.pop_back();
+                    cluster_size++;
+
+                    // Check all neighbors of the current point
+                    for (auto interaction : getInteractions(p))
                     {
                         Point2D n = interaction.neighbor;
                         // Calculate the index of the neighbor (1D)
                         int nidx = n.x * L + n.y;
-                        
+
                         // If the neighbor has the same spin and has not been visited, add it to the stack
                         if (!visited[nidx] && getSpin(n) == spin)
                         {
@@ -219,7 +226,7 @@ public:
 
         return cluster_sizes;
     }
-    
+
     double meanClusterSize()
     {
         std::vector<int> sizes = ClusterSizes();
@@ -234,7 +241,7 @@ public:
 
         return num / den;
     }
-        
+
     measurement2D measure()
     {
         return measurement2D{step, magnetization(), meanClusterSize()};
@@ -244,7 +251,7 @@ public:
     virtual double deltaH(Point2D p) = 0;
 };
 
-//square structure with normal periodic boundary conditions
+// square structure with normal periodic boundary conditions
 class SquareLattice2D : public Lattice2D
 {
 public:
@@ -255,17 +262,17 @@ public:
         std::vector<interaction2D> interactions;
         double J = 1; // Interaction strength in units of k_B (J/k_B)
 
-        interactions.push_back(interaction2D{Point2D{(p.x+1)%size,p.y}, J});
-        interactions.push_back(interaction2D{Point2D{(p.x-1)%size,p.y}, J});
-        interactions.push_back(interaction2D{Point2D{p.x,(p.y+1)%size}, J});
-        interactions.push_back(interaction2D{Point2D{p.x,(p.y-1)%size}, J});
+        interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, p.y}, J});
+        interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, p.y}, J});
+        interactions.push_back(interaction2D{Point2D{p.x, (p.y + 1) % size}, J});
+        interactions.push_back(interaction2D{Point2D{p.x, (p.y - 1) % size}, J});
 
         return interactions;
     }
 
     double deltaH(Point2D p) override
     {
-        double H = -B;
+        double H = -B; // B is magnetic moment times magnetic field
 
         for (const interaction2D &interaction : getInteractions(p))
         {
@@ -278,7 +285,7 @@ public:
     }
 };
 
-//square structure with warped periodic boundary conditions
+// square structure with warped periodic boundary conditions
 class FunkySquareLattice2D : public Lattice2D
 {
 public:
@@ -292,7 +299,7 @@ public:
         if (p.x > 0)
             interactions.push_back(interaction2D{Point2D{p.x - 1, p.y}, J});
         else if (p.x == 0)
-            interactions.push_back(interaction2D{Point2D{size - 1 - p.y, size - 1}, J}); // Funky boundary 
+            interactions.push_back(interaction2D{Point2D{size - 1 - p.y, size - 1}, J}); // Funky boundary
 
         if (p.x < size - 1)
             interactions.push_back(interaction2D{Point2D{p.x + 1, p.y}, J});
@@ -327,7 +334,7 @@ public:
     }
 };
 
-//triangular structure with normal periodic boundary conditions (J defaults -1, antiferromagnetic)
+// triangular structure with normal periodic boundary conditions (J defaults -1, antiferromagnetic)
 class TriangleLattice2D : public Lattice2D
 {
 public:
@@ -338,23 +345,23 @@ public:
         std::vector<interaction2D> interactions;
         double J = -1; // Interaction strength in units of k_B (J/k_B)
 
-        if (p.x%2==1)
+        if (p.x % 2 == 1)
         {
-            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y+1)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y-1)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y+1)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y-1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y + 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y - 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J});
         }
         else
         {
-            interactions.push_back(interaction2D{Point2D{(p.x-1)%size,(p.y)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y+1)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x)%size,(p.y-1)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y+1)%size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x+1)%size,(p.y-1)%size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y + 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y - 1) % size}, J});
         }
         return interactions;
     }

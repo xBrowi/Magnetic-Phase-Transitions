@@ -68,6 +68,10 @@ public:
     }
 };
 
+struct Point 2D {
+    
+}
+
 int main()
 {
     std::cout << "Random number between 1 and 10: " << getRandomInt(1, 10) << "\n";
