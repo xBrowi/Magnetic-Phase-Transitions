@@ -59,10 +59,10 @@ std::vector<measurement2D> runMCSimulation(const MCParameters &params)
     switch (params.latticeType)
     {
     case LatticeType2D::Square:
-        lattice = new SquareLattice2D(params.size);
+        lattice = new SquareLattice2D(params.size, params.B);
         break;
     case LatticeType2D::FunkySquare:
-        lattice = new FunkySquareLattice2D(params.size);
+        lattice = new FunkySquareLattice2D(params.size, params.B);
         break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
@@ -97,7 +97,7 @@ std::vector<measurement2D> runMCSimulation(const MCParameters &params)
 
     {
         std::lock_guard<std::mutex> lock(mcPrintMutex());
-        std::cout << "Simulation complete for T = " << params.temperature << ", size = " << params.size << "\n";
+        std::cout << "Simulation complete for T = " << params.temperature << ", B = " << params.B << ", size = " << params.size << "\n";
     }
 
     delete lattice;
