@@ -321,11 +321,11 @@ public:
 
     double deltaH(Point2D p) override
     {
-        double H = -B * getSpin(p);
+        double H = -B;
 
         for (const interaction2D &interaction : getInteractions(p))
         {
-            H -= getSpin(p) * getSpin(interaction.neighbor) * interaction.J; // Her mangler p's eget spin, som skal indgå i beregningen af dH
+            H -= getSpin(interaction.neighbor) * interaction.J; // Her mangler p's eget spin, som skal indgå i beregningen af dH
         }
 
         double dH = -2 * getSpin(p) * H;
