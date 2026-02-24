@@ -17,7 +17,4 @@ tage stilling til naboer
 korrelation over afstand
     -Cluster Analysis ELLER FFTW
 
-
-
-
-
+Wolff
