@@ -362,23 +362,23 @@ public:
         std::vector<interaction2D> interactions;
         double J = -1; // Interaction strength in units of k_B (J/k_B)
 
-        if (p.x % 2 == 1)
+        if (p.x % 2 == 1) //lige rækker er rykket ind mod højre ift. square
         {
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y - 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J}); //venste
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J}); //højre
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y + 1) % size}, J}); //nordvest
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y - 1) % size}, J}); //sydvest
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J}); //nordøst
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J}); //sydøst
         }
-        else
+        else //ulige rækker 
         {
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y - 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J}); //venste
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J}); //højre
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J}); //nordvest
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J}); //sydvest
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y + 1) % size}, J}); //nordøst
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y - 1) % size}, J}); //sydøst
         }
         return interactions;
     }
