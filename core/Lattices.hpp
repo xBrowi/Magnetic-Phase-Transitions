@@ -1,5 +1,5 @@
-#ifndef LATTICES2D_HPP
-#define LATTICES2D_HPP
+#ifndef LATTICES_HPP
+#define LATTICES_HPP
 
 #include <vector>
 #include <iostream>
@@ -9,15 +9,10 @@
 struct Point2D
 {
     int x, y;
-
-    void print()
-    {
-        std::cout << "Point2D(" << x << ", " << y << ")\n";
-    }
 };
 
 // A measurement class for storing the results of MC simulations at a timestep.
-struct measurement2D
+struct Measurement
 {
     long int step;
     double magnetization;
@@ -25,7 +20,7 @@ struct measurement2D
 };
 
 // identifier for various 2D lattice types
-enum class LatticeType2D
+enum class LatticeType
 {
     Square,
     FunkySquare
@@ -38,42 +33,29 @@ struct interaction2D
     double J; // OBS: IN UNITS OF K_B (J/K_B)
 };
 
-// Template class for lattices. All other lattice classes should inherit these properties.
-class Lattice2D
+
+
+
+
+class Lattice
 {
-    // private is for stuff that should not be accessed, changed or deleted outside the 'definition' of the class.
-protected:
-    // Jeg tror, man normalt kalder spins for spinConfig. Værd at overveje navneskift
+protected:    
     int size;
     long int step;
-    std::vector<std::vector<int>> spins;
+    std::vector<int> spins;
     double B;
 
     // Random number generator (rng)
     std::mt19937 rng{std::random_device{}()};
     std::uniform_int_distribution<int> distCoord;
+    std::uniform_int_distribution<int> distIndex{0, static_cast<int>(spins.size() - 1)};
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
 
 public:
-    // Constructor: initialisér et gitter med alle spins opad (+1)
-    Lattice2D(int sizeArg, double argB = 0)
-    {
-        size = sizeArg;
-        B = argB;
-        step = 0;
-        spins = std::vector<std::vector<int>>(sizeArg, std::vector<int>(sizeArg, 1));
-        distCoord = std::uniform_int_distribution<int>(0, size - 1);
-    }
 
-    // Muliggør access til størrelse
     int getSize()
     {
         return size;
-    }
-
-    int getSpin(Point2D p)
-    {
-        return spins[p.x][p.y];
     }
 
     double getB()
@@ -91,28 +73,74 @@ public:
         step++;
     }
 
-    // initialisér med tilfældige spins
-    void randomize()
-    {
-        for (std::vector<int> &row : spins)
-        {
-            for (int &spin : row)
-            {
-                spin = (distReal(rng) < 0.5) ? -1 : 1;
-            }
-        }
-        step = 0;
-    }
-
     long int getStep()
     {
         return step;
     }
 
+    double magnetization()
+    {
+        int totalSpin = 0;
+        for (int s : spins)
+        {
+            totalSpin += s;
+        }
+
+        return static_cast<double>(totalSpin) / (size * size);
+    }
+
+    void randomize()
+    {
+        for (int &s : spins)
+        {
+            s = (distReal(rng) < 0.5) ? 1 : -1;
+        }
+        step = 0;
+    }
+
+    int getRandomLatticeIndex()
+    {
+        return distIndex(rng);
+    }
+};
+    
+
+
+
+
+
+
+
+
+// Template class for lattices. All other lattice classes should inherit these properties.
+class Lattice2D : public Lattice
+{
+    // private is for stuff that should not be accessed, changed or deleted outside the 'definition' of the class.
+protected:
+    // Jeg tror, man normalt kalder spins for spinConfig. Værd at overveje navneskift
+
+
+public:
+    // Constructor: initialisér et gitter med alle spins opad (+1)
+    Lattice2D(int sizeArg, double argB = 0)
+    {
+        size = sizeArg;
+        B = argB;
+        step = 0;
+        spins = std::vector<int>(sizeArg * sizeArg, 1);
+        distCoord = std::uniform_int_distribution<int>(0, size - 1);
+    }
+
+    int getSpin(Point2D p)
+    {
+        return spins[p.x * size + p.y];
+    }
+
+
     // Flip spin ved et givent koordinat
     void flipSpin(Point2D p)
     {
-        spins[p.x][p.y] *= -1;
+        spins[p.x * size + p.y] *= -1;
     }
 
     // Vælger et tilfældigt koordinat
@@ -123,10 +151,11 @@ public:
 
     void print()
     {
-        for (const std::vector<int> &row : spins)
+        for (int i = 0; i < size; i++)
         {
-            for (const int &spin : row)
+            for (int j = 0; j < size; j++)
             {
+                int spin = getSpin({j, i});
                 std::cout << (spin == 1 ? "██" : "░░");
             }
             std::cout << "\n";
@@ -144,25 +173,13 @@ public:
         {
             for (int n = lower; n < upper; n += step)
             {
-                std::cout << (spins[n][m] == 1 ? "██" : "░░");
+                std::cout << (getSpin({m, n}) == 1 ? "██" : "░░");
             }
             std::cout << "\n";
         }
     }
 
-    double magnetization()
-    {
-        int totalSpin = 0;
-        for (const std::vector<int> &row : spins)
-        {
-            for (const int &spin : row)
-            {
-                totalSpin += spin;
-            }
-        }
-
-        return static_cast<double>(totalSpin) / (size * size);
-    }
+    
 
     std::vector<int> ClusterSizes()
     {
@@ -242,9 +259,9 @@ public:
         return num / den;
     }
 
-    measurement2D measure()
+    Measurement measure()
     {
-        return measurement2D{step, magnetization(), meanClusterSize()};
+        return Measurement{step, magnetization(), meanClusterSize()};
     }
 
     virtual std::vector<interaction2D> getInteractions(Point2D p) = 0;
@@ -381,4 +398,4 @@ public:
     }
 };
 
-#endif // LATTICES2D_HPP
+#endif // LATTICES_HPP

@@ -1,5 +1,5 @@
-#include "../core/MonteCarlo2D.hpp"
-#include "../core/Lattices2D.hpp"
+#include "../core/MonteCarlo.hpp"
+#include "../core/Lattices.hpp"
 
 #include <vector>
 #include <iostream>
@@ -23,7 +23,7 @@ int main()
         for (double B = -1.0; B <= 1.1; B += 0.5)
         {
             MCParameters params;
-            params.latticeType = LatticeType2D::FunkySquare;
+            params.latticeType = LatticeType::FunkySquare;
             params.size = 80;
             params.temperature = T;
             params.B = B;
@@ -38,7 +38,7 @@ int main()
     // for (double T = 2.25; T <= 2.35; T += 0.005)
     // {
     //     MCParameters params;
-    //     params.latticeType = LatticeType2D::FunkySquare;
+    //     params.latticeType = LatticeType::FunkySquare;
     //     params.size = 200;
     //     params.temperature = T;
     //     params.totalStepCount = 5e9;
@@ -49,7 +49,7 @@ int main()
     //     paramsList.push_back(params);
     // }
 
-    std::vector<std::vector<measurement2D>> allMeasurements = runParallelMCSimulation(paramsList);
+    std::vector<std::vector<Measurement>> allMeasurements = runParallelMCSimulation(paramsList);
 
     // Write results to CSV
     for (int i = 0; i < paramsList.size(); ++i)
@@ -73,7 +73,7 @@ int main()
     outFile << "Temperature,ExternalField,Step,Magnetization,MeanClusterSize\n";
     for (size_t i = 0; i < paramsList.size(); ++i)
     {
-        for (const measurement2D &m : allMeasurements[i])
+        for (const Measurement &m : allMeasurements[i])
         {
             outFile << paramsList[i].temperature << "," << paramsList[i].B << "," << m.step << "," << m.magnetization << "," << m.meanClusterSize << "\n";
         }

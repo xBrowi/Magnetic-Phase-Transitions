@@ -1,5 +1,5 @@
-#include "../core/MonteCarlo2D.hpp"
-#include "../core/Lattices2D.hpp"
+#include "../core/MonteCarlo.hpp"
+#include "../core/Lattices.hpp"
 
 #include <vector>
 #include <iostream>
@@ -19,7 +19,7 @@ int main()
     for (int s = 25; s < 222; s += 7)
     {
         MCParameters params;
-        params.latticeType = LatticeType2D::FunkySquare;
+        params.latticeType = LatticeType::FunkySquare;
         params.size = s;
         params.temperature = 2.25;
         params.totalStepCount = 5e9;
@@ -30,7 +30,7 @@ int main()
         paramsList.push_back(params);
     }
 
-    std::vector<std::vector<measurement2D>> allMeasurements = runParallelMCSimulation(paramsList);
+    std::vector<std::vector<Measurement>> allMeasurements = runParallelMCSimulation(paramsList);
 
     // Write results to CSV
     for (int i = 0; i < paramsList.size(); ++i){
@@ -43,7 +43,7 @@ int main()
     outFile << "Size,Step,Magnetization\n";
     for (size_t i = 0; i < paramsList.size(); ++i)
     {
-        for (const measurement2D& m : allMeasurements[i]) {
+        for (const Measurement& m : allMeasurements[i]) {
             outFile << paramsList[i].size << "," << m.step << "," << m.magnetization << "\n";
         }
     }

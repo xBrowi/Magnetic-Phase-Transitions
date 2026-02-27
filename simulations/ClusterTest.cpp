@@ -1,7 +1,7 @@
 
 #include "../core/ClusterAnalysis.hpp"
-#include "../core/MonteCarlo2D.hpp"
-#include "../core/Lattices2D.hpp"
+#include "../core/MonteCarlo.hpp"
+#include "../core/Lattices.hpp"
 
 #include <vector>
 #include <iostream>
@@ -15,7 +15,7 @@
 int main() {
 
     MCParameters params;
-    params.latticeType = LatticeType2D::FunkySquare;
+    params.latticeType = LatticeType::FunkySquare;
     params.size = 20;
     params.temperature = 2.05;
     params.totalStepCount = 1e8;

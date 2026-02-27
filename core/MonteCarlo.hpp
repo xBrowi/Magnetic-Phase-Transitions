@@ -1,7 +1,7 @@
 #ifndef MONTECARLO_HPP
 #define MONTECARLO_HPP
 
-#include "Lattices2D.hpp"
+#include "Lattices.hpp"
 
 #include <vector>
 #include <iostream>
@@ -12,7 +12,7 @@
 
 struct MCParameters
 {
-    LatticeType2D latticeType;
+    LatticeType latticeType;
     int size;
     double temperature;
     double B;
@@ -48,9 +48,9 @@ inline std::mutex &mcPrintMutex()
     return mtx;
 }
 
-std::vector<measurement2D> runMCSimulation(const MCParameters &params)
+std::vector<Measurement> runMCSimulation(const MCParameters &params)
 {
-    std::vector<measurement2D> measurements;
+    std::vector<Measurement> measurements;
     std::mt19937 rng{std::random_device{}()};
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
 
@@ -58,10 +58,10 @@ std::vector<measurement2D> runMCSimulation(const MCParameters &params)
 
     switch (params.latticeType)
     {
-    case LatticeType2D::Square:
+    case LatticeType::Square:
         lattice = new SquareLattice2D(params.size, params.B);
         break;
-    case LatticeType2D::FunkySquare:
+    case LatticeType::FunkySquare:
         lattice = new FunkySquareLattice2D(params.size, params.B);
         break;
     default:
@@ -104,14 +104,14 @@ std::vector<measurement2D> runMCSimulation(const MCParameters &params)
     return measurements;
 }
 
-void writeMCResultsToArray(std::vector<std::vector<measurement2D>> &allMeasurements, const MCParameters &params, int index)
+void writeMCResultsToArray(std::vector<std::vector<Measurement>> &allMeasurements, const MCParameters &params, int index)
 {
     allMeasurements[index] = runMCSimulation(params);
 }
 
-std::vector<std::vector<measurement2D>> runParallelMCSimulation(std::vector<MCParameters> &paramsList)
+std::vector<std::vector<Measurement>> runParallelMCSimulation(std::vector<MCParameters> &paramsList)
 {
-    std::vector<std::vector<measurement2D>> allMeasurements(paramsList.size());
+    std::vector<std::vector<Measurement>> allMeasurements(paramsList.size());
 
     std::vector<std::thread> threads;
     for (size_t i = 0; i < paramsList.size(); ++i)
