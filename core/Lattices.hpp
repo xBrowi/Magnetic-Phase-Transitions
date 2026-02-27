@@ -19,7 +19,9 @@ struct Measurement
 enum class LatticeType
 {
     Square,
-    FunkySquare
+    FunkySquare,
+    Triangle,
+    Cubic,
 };
 
 struct Interaction

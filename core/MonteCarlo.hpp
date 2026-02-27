@@ -56,7 +56,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
     std::mt19937 rng{std::random_device{}()};
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
 
-    Lattice2D *lattice;
+    Lattice *lattice;
 
     switch (params.latticeType)
     {
@@ -65,6 +65,9 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
         break;
     case LatticeType::FunkySquare:
         lattice = new FunkySquareLattice2D(params.size, params.B);
+        break;
+    case LatticeType::Cubic:
+        lattice = new Cubic(params.size, params.B);
         break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
@@ -85,7 +88,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
             if (params.printProgress)
             {
                 std::lock_guard<std::mutex> lock(mcPrintMutex());
-                lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20);
+                //lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20); // doesn't work in n dimensions
                 std::cout << "Step: " << i << ", Magnetization: " << lattice->magnetization() << "\n";
             }
         }
