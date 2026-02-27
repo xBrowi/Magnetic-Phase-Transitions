@@ -18,36 +18,36 @@ int main()
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 1; T <= 6.1; T += 0.5)
-    {
-        for (double B = -1.0; B <= 1.1; B += 0.5)
-        {
-            MCParameters params;
-            params.latticeType = LatticeType::FunkySquare;
-            params.size = 20;
-            params.temperature = T;
-            params.B = B;
-            params.totalStepCount = 1e8;
-            params.measurementInterval = 100'000;
-            params.randomize = true;
-            params.printProgress = false;
-            paramsList.push_back(params);
-        }
-    }
-
-    // for (double T = 2.25; T <= 2.35; T += 0.005)
+    // for (double T = 1; T <= 6.1; T += 0.5)
     // {
-    //     MCParameters params;
-    //     params.latticeType = LatticeType::FunkySquare;
-    //     params.size = 200;
-    //     params.temperature = T;
-    //     params.totalStepCount = 5e9;
-    //     params.measurementInterval = 1'000'000;
-    //     params.randomize = true;
-    //     params.printProgress = false;
-
-    //     paramsList.push_back(params);
+    //     for (double B = -1.0; B <= 1.1; B += 0.5)
+    //     {
+    //         MCParameters params;
+    //         params.latticeType = LatticeType::FunkySquare;
+    //         params.size = 20;
+    //         params.temperature = T;
+    //         params.B = B;
+    //         params.totalStepCount = 1e6;
+    //         params.measurementInterval = 1'000;
+    //         params.randomize = true;
+    //         params.printProgress = false;
+    //         paramsList.push_back(params);
+    //     }
     // }
+
+    for (double T = 2.25; T <= 2.35; T += 0.005)
+    {
+        MCParameters params;
+        params.latticeType = LatticeType::FunkySquare;
+        params.size = 200;
+        params.temperature = T;
+        params.totalStepCount = 1e5;
+        params.measurementInterval = 10;
+        params.randomize = true;
+        params.printProgress = false;
+
+        paramsList.push_back(params);
+    }
 
     std::vector<std::vector<Measurement>> allMeasurements = runParallelMCSimulation(paramsList);
 

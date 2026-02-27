@@ -55,6 +55,16 @@ public:
         return size;
     }
 
+    int getSpinsSize()
+    {
+        return spins.size();
+    }
+
+    int getSpin(int index)
+    {
+        return spins[index];
+    }
+
     void flipSpin(int index)
     {
         spins[index] *= -1;

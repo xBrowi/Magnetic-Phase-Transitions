@@ -24,7 +24,7 @@ struct MCParameters
     bool printProgress = false;
 };
 
-void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
+void MCStepMetropolis(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
 {
     int p = lattice.getRandomLatticeIndex();
     double dH = lattice.deltaH(p);
@@ -42,6 +42,54 @@ void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_dis
     }
 
     lattice.stepForward();
+}
+
+void MCStepWolff(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
+{
+    int p = lattice.getRandomLatticeIndex();
+    int originalSpin = lattice.getSpin(p);
+    std::vector<int> cluster;
+    std::vector<bool> visited(lattice.getSpinsSize(), false);
+
+    std::vector<int> stack;
+    stack.push_back(p);
+    visited[p] = true;
+
+    while (!stack.empty())
+    {
+        int currentIndex = stack.back();
+        stack.pop_back();
+        cluster.push_back(currentIndex);
+
+        for (const Interaction &interaction : lattice.getInteractions(currentIndex))
+        {
+            int neighborIndex = interaction.neighbor;
+            if (!visited[neighborIndex] && lattice.getSpin(neighborIndex) == originalSpin)
+            {
+                double J = interaction.J;
+                double P_add = 1 - std::exp(-2 * J / T);
+
+                if (distReal(rng) < P_add)
+                {
+                    visited[neighborIndex] = true;
+                    stack.push_back(neighborIndex);
+                }
+            }
+        }
+    }
+
+    for (int index : cluster)
+    {
+        lattice.flipSpin(index);
+    }
+
+    lattice.stepForward();
+}
+
+void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
+{
+    // For now, we will use the Metropolis algorithm for all simulations. We can easily switch to Wolff or implement other algorithms in the future.
+    MCStepWolff(lattice, T, rng, distReal);
 }
 
 inline std::mutex &mcPrintMutex()
