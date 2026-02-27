@@ -27,8 +27,8 @@ int main()
             params.size = 80;
             params.temperature = T;
             params.B = B;
-            params.totalStepCount = 5e6;
-            params.measurementInterval = 10'000;
+            params.totalStepCount = 5e8;
+            params.measurementInterval = 100'000;
             params.randomize = true;
             params.printProgress = false;
             paramsList.push_back(params);

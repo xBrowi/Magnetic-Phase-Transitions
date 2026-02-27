@@ -2,6 +2,8 @@
 #define MONTECARLO_HPP
 
 #include "Lattices.hpp"
+#include "Lattices2D.hpp"
+#include "Lattices3D.hpp"
 
 #include <vector>
 #include <iostream>
@@ -22,9 +24,9 @@ struct MCParameters
     bool printProgress = false;
 };
 
-void MCStep2D(Lattice2D &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
+void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
 {
-    Point2D p = lattice.getRandomCoord();
+    int p = lattice.getRandomLatticeIndex();
     double dH = lattice.deltaH(p);
 
     if (dH < 0)
@@ -76,7 +78,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
 
     for (long int i = 0; i < params.totalStepCount; i++)
     {
-        MCStep2D(*lattice, params.temperature, rng, distReal);
+        MCStep(*lattice, params.temperature, rng, distReal);
         if (i % params.measurementInterval == 0)
         {
             measurements.push_back(lattice->measure());

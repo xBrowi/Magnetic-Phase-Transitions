@@ -34,18 +34,20 @@ int main() {
 
     for (int i = 0;i<10;i++)
     {
-        MCStep2D(*lattice,params.temperature,rng,distReal);
+        MCStep(*lattice,params.temperature,rng,distReal);
     }
 
     lattice->print();
 
-    Point2D p = lattice->getRandomCoord();
-    std::vector<interaction2D> interactions = lattice->getInteractions(p);
+    int p = lattice->getRandomLatticeIndex();
+    std::vector<Interaction> interactions = lattice->getInteractions(p);
 
-    std::cout << "current point: " << p.x << "," << p.y << std::endl;
+    Point2D pCoord = lattice->getCoordFromIndex(p);
+    std::cout << "current point: " << pCoord.x << "," << pCoord.y << std::endl;
     std::cout << "neighboring points: "; 
-    for (interaction2D i : interactions) {
-        std::cout << i.neighbor.x << "," << i.neighbor.y << " ";
+    for (Interaction i : interactions) {
+        Point2D neighborCoord = lattice->getCoordFromIndex(i.neighbor);
+        std::cout << neighborCoord.x << "," << neighborCoord.y << " ";
     }
     std::cout << std::endl;
 
