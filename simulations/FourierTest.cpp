@@ -26,7 +26,7 @@ int main()
     Lattice2D *lattice;
     lattice = new FunkySquareLattice2D(params.size);
 
-    //step through the simulation to get a non-trivial spin configuration
+    //whatever
     std::mt19937 rng{std::random_device{}()};
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
     for (long int i = 0; i < params.totalStepCount; i++)

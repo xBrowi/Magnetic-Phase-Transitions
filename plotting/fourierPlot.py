@@ -10,9 +10,11 @@ print(data,data2D)
 
 norms = np.sqrt(data[:, 0]**2 + data[:, 1]**2)
 norms2D = np.sqrt(data2D[:,:,0]**2 + data2D[:,:,1]**2)
+norms2Dwrapped = np.fft.fftshift(norms2D) # shift the zero frequency component to the center of the spectrum
 X = np.linspace(0, 1, len(norms))
 X2D = np.linspace(0, 1, len(norms2D))
 print(X,"\n", norms)
+
 
 
 plt.plot(X,data[:,0], label="Real part")
@@ -45,7 +47,7 @@ plt.close()
 
 # Plot heatmap: rows -> temperatures, columns -> fields
 fig, ax = plt.subplots(figsize=(32, 32))
-im = ax.imshow(norms2D, origin='lower', aspect='auto', cmap=cmap)
+im = ax.imshow(norms2Dwrapped, origin='lower', aspect='auto', cmap=cmap)
 
 # set ticks to the unique values
 #ax.set_xticks(np.arange(len(B_unique)))
