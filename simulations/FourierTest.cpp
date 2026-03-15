@@ -18,7 +18,7 @@ int main()
     params.latticeType = LatticeType::FunkySquare;
     params.size = 32;
     params.temperature = 2.25;
-    params.totalStepCount = 1e4;
+    params.totalStepCount = 1e5;
     params.measurementInterval = 1e5;
     params.randomize = false;
     params.printProgress = false;

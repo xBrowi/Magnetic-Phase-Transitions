@@ -38,4 +38,24 @@ for i in range(len(norms2D)):
 
 plt.title("2D reciprocal space?")
 #plt.legend()
-plt.savefig("fourier_plot.png", dpi=500)
+plt.savefig("fourier_plot_2D.png", dpi=500)
+plt.close()
+
+
+
+# Plot heatmap: rows -> temperatures, columns -> fields
+fig, ax = plt.subplots(figsize=(32, 32))
+im = ax.imshow(norms2D, origin='lower', aspect='auto', cmap=cmap)
+
+# set ticks to the unique values
+#ax.set_xticks(np.arange(len(B_unique)))
+#ax.set_xticklabels([str(x) for x in B_unique], rotation=45)
+#ax.set_yticks(np.arange(len(temperatures_unique)))
+#ax.set_yticklabels([str(x) for x in temperatures_unique])
+
+ax.set_xlabel(r"$k_x$")
+ax.set_ylabel(r"$k_y$")
+ax.set_title("2D Fourier Transform Heatmap")
+fig.colorbar(im, ax=ax, label="norm of Fourier Transform")
+plt.tight_layout()
+plt.savefig('fourier_heatmap.png', dpi=300)
