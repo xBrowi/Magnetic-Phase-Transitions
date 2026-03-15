@@ -11,6 +11,9 @@
 #include <cmath>
 #include <thread>
 #include <mutex>
+//#include <fftw3.h> //Fourierificering, comment ud indtil i installerer library
+
+
 
 struct MCParameters
 {
@@ -88,8 +91,9 @@ void MCStepWolff(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_rea
 
 void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
 {
-    // For now, we will use the Metropolis algorithm for all simulations. We can easily switch to Wolff or implement other algorithms in the future.
+    // Wolff eller Metropolis, implementer begge senere
     MCStepWolff(lattice, T, rng, distReal);
+    //MCStepMetropolis(lattice, T, rng, distReal);
 }
 
 inline std::mutex &mcPrintMutex()
