@@ -17,10 +17,10 @@ int main()
     MCParameters params;
     params.latticeType = LatticeType::FunkySquare;
     params.size = 32;
-    params.temperature = 2.25;
+    params.temperature = 3.29;
     params.totalStepCount = 1e5;
     params.measurementInterval = 1e5;
-    params.randomize = false;
+    params.randomize = true;
     params.printProgress = false;
 
     Lattice2D *lattice;

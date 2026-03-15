@@ -92,8 +92,8 @@ void MCStepWolff(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_rea
 void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
 {
     // Wolff eller Metropolis, implementer begge senere
-    MCStepWolff(lattice, T, rng, distReal);
-    //MCStepMetropolis(lattice, T, rng, distReal);
+    //MCStepWolff(lattice, T, rng, distReal);
+    MCStepMetropolis(lattice, T, rng, distReal);
 }
 
 inline std::mutex &mcPrintMutex()
