@@ -16,11 +16,11 @@ int main()
 
     MCParameters params;
     params.latticeType = LatticeType::FunkySquare;
-    params.size = 20;
-    params.temperature = 2.05;
+    params.size = 32;
+    params.temperature = 2.25;
     params.totalStepCount = 1e4;
-    params.measurementInterval = 1000;
-    params.randomize = true;
+    params.measurementInterval = 1e5;
+    params.randomize = false;
     params.printProgress = false;
 
     Lattice2D *lattice;
@@ -34,20 +34,25 @@ int main()
         MCStep(*lattice, params.temperature, rng, distReal);
     }
 
+    lattice->print();
+
+    auto startTime = std::chrono::high_resolution_clock::now();
+    
     //alloker skidtet til Fourierificering
     int N = lattice->getSize();
     fftw_complex *in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
     fftw_complex *out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
     fftw_plan p = fftw_plan_dft_2d(N, N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    //transformér spin-konfigurationen til FFor now, we will use the Metropolis algorithm for all simulations. We can easily switch to Wolff or implement other algorithms in the future.ourier space
+    //fyld input arrayet med spin-konfigurationen
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             in[i*N + j][0] = lattice->getSpin({i,j}); // real part
             in[i*N + j][1] = 0.0; // imag part
         }
     }
-
+    auto flag = std::chrono::high_resolution_clock::now();
+    //kør magien
     fftw_execute(p);
     //output Fourier transformen
     std::ofstream outFile("output/fourier_output.csv");
@@ -63,8 +68,11 @@ int main()
     fftw_free(in);
     fftw_free(out);
 
-    //print done
-    //std::cout << "Done! Fourier transform output saved to output/fourier_output.csv\n";
+    auto endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = endTime - startTime;
+    std::cout << "Fourier transform completed in " << elapsed.count() << " seconds.\n";
+    std::chrono::duration<double> elapsedFlag = endTime - flag;
+    std::cout << "Fourier execution completed in " << elapsedFlag.count() << " seconds.\n";
 
     return 0;
 }
