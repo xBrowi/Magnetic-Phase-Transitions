@@ -25,6 +25,7 @@ struct MCParameters
     long int measurementInterval;
     bool randomize = true;
     bool printProgress = false;
+    double stabilizing = 0.2;
 };
 
 void MCStepMetropolis(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
@@ -185,9 +186,6 @@ std::vector<std::vector<Measurement>> runParallelMCSimulation(std::vector<MCPara
     return allMeasurements;
 }
 
-
-
-
 std::vector<double> runFourierMCSimulation(const MCParameters &params)
 {
     std::vector<double> FourierNorms;
@@ -214,15 +212,9 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
     for (long int i = 0; i < params.totalStepCount; i++)
     {
         MCStep(*lattice, params.temperature, rng, distReal);
-        if (i % params.measurementInterval == 0)
+        if (i % params.measurementInterval == 0 && double(i)/params.totalStepCount > params.stabilizing)
         {
             lattice->measureFourier();
-            if (params.printProgress)
-            {
-                std::lock_guard<std::mutex> lock(mcPrintMutex());
-                //lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20); // doesn't work in n dimensions
-                std::cout << "Step: " << i << ", Magnetization: " << lattice->magnetization() << "\n";
-            }
         }
 
         if (i % (params.totalStepCount / 50) == 0)
@@ -236,11 +228,34 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
         std::lock_guard<std::mutex> lock(mcPrintMutex());
         std::cout << "Simulation complete for T = " << params.temperature << ", B = " << params.B << ", size = " << params.size << "\n";
     }
-
+    std::vector<double> output = lattice.fourier.normSum / lattice.fourier.counter;
     delete lattice;
-    return measurements;
+    return output;
 }
 
+void writeFourierMCResultsToArray(std::vector<std::vector<double>> &allMeasurements, const MCParameters &params, int index)
+{
+    allMeasurements[index] = (params);
+}
+
+std::vector<std::vector<double>> runParallelFourierMCSimulation(std::vector<MCParameters> &paramsList)
+{
+    std::vector<std::vector<double>> allMeasurements(paramsList.size());
+
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < paramsList.size(); ++i)
+    {
+        paramsList[i].printProgress = false; // Disable progress printing for parallel runs
+        threads.emplace_back(writeFourierMCResultsToArray, std::ref(allMeasurements), std::cref(paramsList[i]), i);
+    }
+
+    for (auto &thread : threads)
+    {
+        thread.join();
+    }
+
+    return allMeasurements;
+}
 
 
 
