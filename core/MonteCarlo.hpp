@@ -11,7 +11,7 @@
 #include <cmath>
 #include <thread>
 #include <mutex>
-//#include <fftw3.h> //Fourierificering, comment ud indtil i installerer library
+#include <fftw3.h> //Fourierificering, comment ud indtil i installerer library
 
 
 
@@ -163,7 +163,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
 
 void writeMCResultsToArray(std::vector<std::vector<Measurement>> &allMeasurements, const MCParameters &params, int index)
 {
-    allMeasurements[index] = runMCSimulation(params);
+    allMeasurements[index] = (params);
 }
 
 std::vector<std::vector<Measurement>> runParallelMCSimulation(std::vector<MCParameters> &paramsList)
@@ -184,5 +184,69 @@ std::vector<std::vector<Measurement>> runParallelMCSimulation(std::vector<MCPara
 
     return allMeasurements;
 }
+
+
+
+
+std::vector<double> runFourierMCSimulation(const MCParameters &params)
+{
+    std::vector<double> FourierNorms;
+    std::mt19937 rng{std::random_device{}()};
+    std::uniform_real_distribution<double> distReal{0.0, 1.0};
+
+    Lattice *lattice;
+
+    switch (params.latticeType)
+    {
+    case LatticeType::FunkySquare:
+        lattice = new FunkySquareLattice2D(params.size, params.B);
+        break;
+    default:
+        std::cerr << "Unsupported lattice type!" << std::endl;
+        return measurements;
+    }
+
+    if (params.randomize)
+    {
+        lattice->randomize();
+    }
+
+    for (long int i = 0; i < params.totalStepCount; i++)
+    {
+        MCStep(*lattice, params.temperature, rng, distReal);
+        if (i % params.measurementInterval == 0)
+        {
+            lattice->measureFourier();
+            if (params.printProgress)
+            {
+                std::lock_guard<std::mutex> lock(mcPrintMutex());
+                //lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20); // doesn't work in n dimensions
+                std::cout << "Step: " << i << ", Magnetization: " << lattice->magnetization() << "\n";
+            }
+        }
+
+        if (i % (params.totalStepCount / 50) == 0)
+        {
+            std::lock_guard<std::mutex> lock(mcPrintMutex());
+            std::cout << "Progress: " << (100.0 * i / params.totalStepCount) << "%\n";
+        }
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mcPrintMutex());
+        std::cout << "Simulation complete for T = " << params.temperature << ", B = " << params.B << ", size = " << params.size << "\n";
+    }
+
+    delete lattice;
+    return measurements;
+}
+
+
+
+
+
+
+
+
 
 #endif // MONTECARLO_HPP

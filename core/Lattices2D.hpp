@@ -33,6 +33,7 @@ public:
         step = 0;
         spins = std::vector<int>(sizeArg * sizeArg, 1);
         distIndex = std::uniform_int_distribution<int>(0, static_cast<int>(spins.size() - 1));
+        fourier = {0,std::vector<fftw_complex>(sizeArg*sizeArg,0)}
     }
 
     int getSpin(Point2D p)
