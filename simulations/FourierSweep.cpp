@@ -1,4 +1,4 @@
-#include "../core/ClusterAnalysis.hpp"
+//#include "../core/ClusterAnalysis.hpp"
 #include "../core/MonteCarlo.hpp"
 #include "../core/Lattices.hpp"
 
@@ -39,17 +39,17 @@ int main()
     outFile << "paramsliste, gennemsnitlige koefficient norm for hver simulation\n";
     for (size_t i = 0; i < paramsList.size(); ++i)
     {   
-        outFile << paramslist[i].size << ",";
-        outFile << paramslist[i].temperature << ",";
-        outFile << paramslist[i].B << ",";
-        outFile << paramslist[i].totalStepCount << ",";
-        outFile << paramslist[i].measurementInterval<< ",";
+        outFile << paramsList[i].size << ",";
+        outFile << paramsList[i].temperature << ",";
+        outFile << paramsList[i].B << ",";
+        outFile << paramsList[i].totalStepCount << ",";
+        outFile << paramsList[i].measurementInterval<< ",";
 
         for (const double &m : allMeasurements[i])
         {
             outFile << m << ",";
         }
-        outfile << "\n"
+        outFile << "\n";
     }
 
     outFile.close();

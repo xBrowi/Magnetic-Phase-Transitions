@@ -34,7 +34,7 @@ struct Interaction
 struct TrackFourier
 {
     int counter;
-    stid::vector<double> normSum; 
+    std::vector<double> normSum; 
 };
 
 
@@ -85,6 +85,11 @@ public:
     double getB()
     {
         return B;
+    }
+
+    TrackFourier getFourier()
+    {
+        return fourier;
     }
 
     void setB(double argB)
@@ -190,47 +195,7 @@ public:
 
     Measurement measure()
     {
-        return measureOld(); // giver sig selv
-        //return measureFourier();
-    }
-
-
-    void measureOld()
-    {
         return Measurement{step, magnetization(), meanClusterSize()};
-    }
-
-    void measureFourier()
-    {
-        //kopieret fra test:
-        //alloker skidtet til Fourierificering
-    int N = size;
-    fftw_complex *in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
-    fftw_complex *out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
-
-    //OBS!!!!! planen burde skabes under initialisering af latticen, og bare genbruges. ryk den her ud i constructoren? (*)
-    fftw_plan p = fftw_plan_dft_2d(N, N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);     
-
-    //fyld input arrayet med spin-konfigurationen
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            in[i*N + j][0] = spins[i * N + j]; // real part
-            in[i*N + j][1] = 0.0; // imag part
-        }
-    }
-    //kør magien
-    fftw_execute(p);
-    //output Fourier transformen til trackeren (skrevet med god gammel python syntax)
-    out *= 1/(fourier.counter+1);
-    fourier.koefficienter *= fourier.counter/(fourier.counter+1);
-    fourier.koefficienter += out;
-    fourier.counter++;
-
-
-    //frigør hukommelsen
-    fftw_destroy_plan(p); //(*) og den her ud ved destruktion af latticen. ca. 2x speedup?
-    fftw_free(in);
-    fftw_free(out);
     }
 };
     

@@ -164,7 +164,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
 
 void writeMCResultsToArray(std::vector<std::vector<Measurement>> &allMeasurements, const MCParameters &params, int index)
 {
-    allMeasurements[index] = (params);
+    allMeasurements[index] = runMCSimulation(params);
 }
 
 std::vector<std::vector<Measurement>> runParallelMCSimulation(std::vector<MCParameters> &paramsList)
@@ -192,7 +192,7 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
     std::mt19937 rng{std::random_device{}()};
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
 
-    Lattice *lattice;
+    Lattice2D *lattice;
 
     switch (params.latticeType)
     {
@@ -201,8 +201,10 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
         break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
-        return measurements;
+        return FourierNorms;
     }
+
+    lattice->initializeFourier();
 
     if (params.randomize)
     {
@@ -228,14 +230,22 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
         std::lock_guard<std::mutex> lock(mcPrintMutex());
         std::cout << "Simulation complete for T = " << params.temperature << ", B = " << params.B << ", size = " << params.size << "\n";
     }
-    std::vector<double> output = lattice.fourier.normSum / lattice.fourier.counter;
+
+    std::vector<double> output = lattice->getFourier().normSum;
+
+    for (double &val : output)
+    {
+        val /= lattice->getFourier().counter; // Average over measurements
+    }
+
+    lattice->freeFourier();
     delete lattice;
     return output;
 }
 
 void writeFourierMCResultsToArray(std::vector<std::vector<double>> &allMeasurements, const MCParameters &params, int index)
 {
-    allMeasurements[index] = (params);
+    allMeasurements[index] = runFourierMCSimulation(params);
 }
 
 std::vector<std::vector<double>> runParallelFourierMCSimulation(std::vector<MCParameters> &paramsList)

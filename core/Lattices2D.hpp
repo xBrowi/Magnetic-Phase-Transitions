@@ -22,7 +22,10 @@ class Lattice2D : public Lattice
     // private is for stuff that should not be accessed, changed or deleted outside the 'definition' of the class.
 protected:
     // Jeg tror, man normalt kalder spins for spinConfig. Værd at overveje navneskift
-
+    
+        fftw_complex *in;
+        fftw_complex *out;
+        fftw_plan p;   
 
 public:
     // Constructor: initialisér et gitter med alle spins opad (+1)
@@ -33,7 +36,22 @@ public:
         step = 0;
         spins = std::vector<int>(sizeArg * sizeArg, 1);
         distIndex = std::uniform_int_distribution<int>(0, static_cast<int>(spins.size() - 1));
-        fourier = {0,std::vector<fftw_complex>(sizeArg*sizeArg,0)}
+        fourier = {0,std::vector<double>(sizeArg*sizeArg,0)};
+    }
+
+    void initializeFourier()
+    {
+        int N = size;
+        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
+        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
+        p = fftw_plan_dft_2d(N, N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    }
+
+    void freeFourier()
+    {
+        fftw_destroy_plan(p);
+        fftw_free(in);
+        fftw_free(out);
     }
 
     int getSpin(Point2D p)
@@ -111,6 +129,41 @@ public:
         }
 
         return interactions;
+    }
+
+    std::vector<double> FourierNorm(fftw_complex* out)
+    {
+        std::vector<double> norms(size * size);
+        for (int i = 0; i < size * size; i++)
+        {
+            norms[i] = std::sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
+        }
+        return norms;
+    }
+
+    void measureFourier()
+    {
+        int N = size;
+
+        //fyld input arrayet med spin-konfigurationen
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                in[i*N + j][0] = spins[i * N + j]; // real part
+                in[i*N + j][1] = 0.0; // imag part
+            }
+        }
+        //kør magien
+        fftw_execute(p);
+        //output Fourier transformen til trackeren (skrevet med god gammel python syntax)
+
+        std::vector<double> norm = FourierNorm(out);
+
+        for (int i = 0; i < N * N; i++) {
+            fourier.normSum[i] += norm[i];
+        }
+
+        fourier.counter++;
+
     }
 };
 
