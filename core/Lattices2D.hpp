@@ -2,6 +2,13 @@
 #define LATTICES2D_HPP
 
 #include "Lattices.hpp"
+#include <mutex>
+
+inline std::mutex &fftwPlannerMutex()
+{
+    static std::mutex mtx;
+    return mtx;
+}
 
 // This is a 2D point class. The function print() prints its coordinates.
 struct Point2D
@@ -23,9 +30,9 @@ class Lattice2D : public Lattice
 protected:
     // Jeg tror, man normalt kalder spins for spinConfig. Værd at overveje navneskift
     
-        fftw_complex *in;
-        fftw_complex *out;
-        fftw_plan p;   
+        fftw_complex *in = nullptr;
+        fftw_complex *out = nullptr;
+        fftw_plan p = nullptr;
 
 public:
     // Constructor: initialisér et gitter med alle spins opad (+1)
@@ -44,14 +51,34 @@ public:
         int N = size;
         in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
         out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
-        p = fftw_plan_dft_2d(N, N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+        {
+            std::lock_guard<std::mutex> lock(fftwPlannerMutex());
+            p = fftw_plan_dft_2d(N, N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+        }
     }
 
     void freeFourier()
     {
-        fftw_destroy_plan(p);
-        fftw_free(in);
-        fftw_free(out);
+        {
+            std::lock_guard<std::mutex> lock(fftwPlannerMutex());
+            if (p != nullptr)
+            {
+                fftw_destroy_plan(p);
+                p = nullptr;
+            }
+        }
+
+        if (in != nullptr)
+        {
+            fftw_free(in);
+            in = nullptr;
+        }
+
+        if (out != nullptr)
+        {
+            fftw_free(out);
+            out = nullptr;
+        }
     }
 
     int getSpin(Point2D p)

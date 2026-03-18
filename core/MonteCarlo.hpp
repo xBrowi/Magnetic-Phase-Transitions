@@ -232,10 +232,14 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
     }
 
     std::vector<double> output = lattice->getFourier().normSum;
+    int sampleCount = lattice->getFourier().counter;
 
-    for (double &val : output)
+    if (sampleCount > 0)
     {
-        val /= lattice->getFourier().counter; // Average over measurements
+        for (double &val : output)
+        {
+            val /= sampleCount; // Average over measurements
+        }
     }
 
     lattice->freeFourier();
@@ -253,10 +257,22 @@ std::vector<std::vector<double>> runParallelFourierMCSimulation(std::vector<MCPa
     std::vector<std::vector<double>> allMeasurements(paramsList.size());
 
     std::vector<std::thread> threads;
+    unsigned int hw = std::thread::hardware_concurrency();
+    size_t maxThreads = (hw == 0) ? 4 : static_cast<size_t>(hw);
+
     for (size_t i = 0; i < paramsList.size(); ++i)
     {
         paramsList[i].printProgress = false; // Disable progress printing for parallel runs
         threads.emplace_back(writeFourierMCResultsToArray, std::ref(allMeasurements), std::cref(paramsList[i]), i);
+
+        if (threads.size() >= maxThreads)
+        {
+            for (auto &thread : threads)
+            {
+                thread.join();
+            }
+            threads.clear();
+        }
     }
 
     for (auto &thread : threads)

@@ -44,6 +44,7 @@ int main()
         outFile << paramsList[i].B << ",";
         outFile << paramsList[i].totalStepCount << ",";
         outFile << paramsList[i].measurementInterval<< ",";
+        outFile << "PARAMS_END"<< ",";
 
         for (const double &m : allMeasurements[i])
         {
