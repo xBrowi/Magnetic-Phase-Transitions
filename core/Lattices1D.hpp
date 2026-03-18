@@ -17,13 +17,16 @@ struct interaction1D
 
 class Lattice1D : public Lattice
 {
+
+public:
     // Constructor: initialisér et gitter med alle spins opad (+1)
-    Lattice2D(int sizeArg, double argB = 0)
+    Lattice1D(int sizeArg, double argB = 0)
     {
         size = sizeArg;
         B = argB;
         step = 0;
-        spins = std::vector<int>(sizeArg, 1)
+        spins = std::vector<int>(sizeArg, 1);
+        distIndex = std::uniform_int_distribution<int>(0, static_cast<int>(spins.size() - 1));
     }
 
     int getSpin(Point1D p)
@@ -36,8 +39,13 @@ class Lattice1D : public Lattice
         spins[p.x] *= -1;
     }
 
+    Point1D getCoordFromIndex(int index)
+    {
+        return Point1D{index};
+    }
+
     // Vælger et tilfældigt koordinat
-    Point2D getRandomCoord()
+    Point1D getRandomCoord()
     {
         return getCoordFromIndex(getRandomLatticeIndex());
     }
@@ -46,7 +54,7 @@ class Lattice1D : public Lattice
     {
         for (int i = 0; i < size; i++)
         {
-            int spin = getSpin({j, i});
+            int spin = getSpin(getCoordFromIndex(i));
             std::cout << (spin == 1 ? "██" : "░░");
         }
         std::cout << "\n";
@@ -76,7 +84,7 @@ class Lattice1D : public Lattice
         return interactions;
     }
 
-}
+};
 
 // 3 * 1 lattice with free boundary conditions
 class FreeLattice1D : public Lattice1D
@@ -111,3 +119,5 @@ public:
         return dH;
     }
 };
+
+#endif // LATTICES1D_HPP

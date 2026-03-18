@@ -23,6 +23,7 @@ enum class LatticeType
     FunkySquare,
     Triangle,
     Cubic,
+    OneD
 };
 
 struct Interaction

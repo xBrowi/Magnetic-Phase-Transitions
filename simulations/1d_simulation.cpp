@@ -40,7 +40,7 @@ int main()
     {
         for (const Measurement &m : allMeasurements[i])
         {
-            outFile << paramsList[i].size << "," << paramsList[i].temperature << "," << paramsList[i].B << "," << m.step << "," << m.magnetization << "," << m.energy << "\n";
+            outFile << paramsList[i].size << "," << paramsList[i].temperature << "," << paramsList[i].B << "," << m.step << "," << m.magnetization << "\n";
         }
     }
 

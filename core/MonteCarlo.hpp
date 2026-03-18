@@ -2,6 +2,7 @@
 #define MONTECARLO_HPP
 
 #include "Lattices.hpp"
+#include "Lattices1D.hpp"
 #include "Lattices2D.hpp"
 #include "Lattices3D.hpp"
 
@@ -121,6 +122,9 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
         break;
     case LatticeType::Cubic:
         lattice = new Cubic(params.size, params.B);
+        break;
+    case LatticeType::OneD:
+        lattice = new FreeLattice1D(params.size, params.B);
         break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
