@@ -23,11 +23,11 @@ int main()
         {
             MCParameters params;
             params.latticeType = LatticeType::FunkySquare;
-            params.size = 20;
+            params.size = 128;
             params.temperature = T;
             params.B = B;
-            params.totalStepCount = 1e6;
-            params.measurementInterval = 1'000;
+            params.totalStepCount = 1e9;
+            params.measurementInterval = 100'000;
             params.randomize = true;
             params.printProgress = false;
             paramsList.push_back(params);
@@ -44,7 +44,6 @@ int main()
         outFile << paramsList[i].B << ",";
         outFile << paramsList[i].totalStepCount << ",";
         outFile << paramsList[i].measurementInterval<< ",";
-        outFile << "PARAMS_END"<< ",";
 
         for (const double &m : allMeasurements[i])
         {

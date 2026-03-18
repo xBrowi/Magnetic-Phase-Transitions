@@ -4,8 +4,8 @@ import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
 
-data = np.loadtxt("output/fourier_output.csv", delimiter=" ", skiprows=0)
-data2D = np.array(np.split(data, len(data)//32))
+data = np.loadtxt("output/fourier_output.csv", delimiter=" ", skiprows=1)
+data2D = np.array(np.split(data, len(data)//128))
 print(data,data2D)
 
 norms = np.sqrt(data[:, 0]**2 + data[:, 1]**2)
