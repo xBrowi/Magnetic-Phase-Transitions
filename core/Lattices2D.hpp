@@ -1,34 +1,12 @@
 #ifndef LATTICES2D_HPP
 #define LATTICES2D_HPP
 
-#include <vector>
-#include <iostream>
-#include <random>
+#include "Lattices.hpp"
 
 // This is a 2D point class. The function print() prints its coordinates.
 struct Point2D
 {
     int x, y;
-
-    void print()
-    {
-        std::cout << "Point2D(" << x << ", " << y << ")\n";
-    }
-};
-
-// A measurement class for storing the results of MC simulations at a timestep.
-struct measurement2D
-{
-    long int step;
-    double magnetization;
-    double meanClusterSize;
-};
-
-// identifier for various 2D lattice types
-enum class LatticeType2D
-{
-    Square,
-    FunkySquare
 };
 
 // an interaction class, storing the neighbors coordinates and the coupling strength
@@ -39,20 +17,15 @@ struct interaction2D
 };
 
 // Template class for lattices. All other lattice classes should inherit these properties.
-class Lattice2D
+class Lattice2D : public Lattice
 {
     // private is for stuff that should not be accessed, changed or deleted outside the 'definition' of the class.
 protected:
     // Jeg tror, man normalt kalder spins for spinConfig. Værd at overveje navneskift
-    int size;
-    long int step;
-    std::vector<std::vector<int>> spins;
-    double B;
-
-    // Random number generator (rng)
-    std::mt19937 rng{std::random_device{}()};
-    std::uniform_int_distribution<int> distCoord;
-    std::uniform_real_distribution<double> distReal{0.0, 1.0};
+    
+        fftw_complex *in;
+        fftw_complex *out;
+        fftw_plan p;   
 
 public:
     // Constructor: initialisér et gitter med alle spins opad (+1)
@@ -61,72 +34,56 @@ public:
         size = sizeArg;
         B = argB;
         step = 0;
-        spins = std::vector<std::vector<int>>(sizeArg, std::vector<int>(sizeArg, 1));
-        distCoord = std::uniform_int_distribution<int>(0, size - 1);
+        spins = std::vector<int>(sizeArg * sizeArg, 1);
+        distIndex = std::uniform_int_distribution<int>(0, static_cast<int>(spins.size() - 1));
+        fourier = {0,std::vector<double>(sizeArg*sizeArg,0)};
     }
 
-    // Muliggør access til størrelse
-    int getSize()
+    void initializeFourier()
     {
-        return size;
+        int N = size;
+        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
+        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
+        p = fftw_plan_dft_2d(N, N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    }
+
+    void freeFourier()
+    {
+        fftw_destroy_plan(p);
+        fftw_free(in);
+        fftw_free(out);
     }
 
     int getSpin(Point2D p)
     {
-        return spins[p.x][p.y];
+        return spins[p.x * size + p.y];
     }
 
-    double getB()
+    Point2D getCoordFromIndex(int index)
     {
-        return B;
+        return Point2D{index / size, index % size};
     }
 
-    void setB(double argB)
-    {
-        B = argB;
-    }
-
-    void stepForward()
-    {
-        step++;
-    }
-
-    // initialisér med tilfældige spins
-    void randomize()
-    {
-        for (std::vector<int> &row : spins)
-        {
-            for (int &spin : row)
-            {
-                spin = (distReal(rng) < 0.5) ? -1 : 1;
-            }
-        }
-        step = 0;
-    }
-
-    long int getStep()
-    {
-        return step;
-    }
 
     // Flip spin ved et givent koordinat
     void flipSpin(Point2D p)
     {
-        spins[p.x][p.y] *= -1;
+        spins[p.x * size + p.y] *= -1;
     }
 
     // Vælger et tilfældigt koordinat
     Point2D getRandomCoord()
     {
-        return Point2D{distCoord(rng), distCoord(rng)};
+        return getCoordFromIndex(getRandomLatticeIndex());
     }
 
     void print()
     {
-        for (const std::vector<int> &row : spins)
+        for (int i = 0; i < size; i++)
         {
-            for (const int &spin : row)
+            for (int j = 0; j < size; j++)
             {
+                int spin = getSpin({j, i});
                 std::cout << (spin == 1 ? "██" : "░░");
             }
             std::cout << "\n";
@@ -144,111 +101,70 @@ public:
         {
             for (int n = lower; n < upper; n += step)
             {
-                std::cout << (spins[n][m] == 1 ? "██" : "░░");
+                std::cout << (getSpin({m, n}) == 1 ? "██" : "░░");
             }
             std::cout << "\n";
         }
     }
 
-    double magnetization()
-    {
-        int totalSpin = 0;
-        for (const std::vector<int> &row : spins)
-        {
-            for (const int &spin : row)
-            {
-                totalSpin += spin;
-            }
-        }
-
-        return static_cast<double>(totalSpin) / (size * size);
-    }
-
-    std::vector<int> ClusterSizes()
-    {
-        // Get the size of the lattice
-        int L = getSize();
-
-        // Initialize visited vector to keep track of visited sites
-        std::vector<bool> visited(L * L, false);
-        std::vector<int> cluster_sizes;
-
-        // Loop over entire lattice
-        for (int x = 0; x < L; x++)
-        {
-            for (int y = 0; y < L; y++)
-            {
-
-                // index of the current site (1D)
-                int idx = x * L + y;
-
-                // Skip site if it has already been visited
-                if (visited[idx])
-                    continue;
-
-                // Get the spin of the current site
-                int spin = getSpin({x, y});
-
-                int cluster_size = 0;
-
-                // Depth-First Search (DFS) stack
-                std::vector<Point2D> stack;
-                stack.push_back({x, y});
-                visited[idx] = true;
-
-                // DFS loop
-                while (!stack.empty())
-                {
-                    auto p = stack.back();
-                    stack.pop_back();
-                    cluster_size++;
-
-                    // Check all neighbors of the current point
-                    for (auto interaction : getInteractions(p))
-                    {
-                        Point2D n = interaction.neighbor;
-                        // Calculate the index of the neighbor (1D)
-                        int nidx = n.x * L + n.y;
-
-                        // If the neighbor has the same spin and has not been visited, add it to the stack
-                        if (!visited[nidx] && getSpin(n) == spin)
-                        {
-                            // Mark the neighbor as visited and add it to the stack
-                            visited[nidx] = true;
-                            stack.push_back(n);
-                        }
-                    }
-                }
-                // After the DFS is complete, we have the size of the cluster
-                cluster_sizes.push_back(cluster_size);
-            }
-        }
-
-        return cluster_sizes;
-    }
-
-    double meanClusterSize()
-    {
-        std::vector<int> sizes = ClusterSizes();
-        double num = 0.0;
-        double den = 0.0;
-
-        for (int s : sizes)
-        {
-            num += s * s;
-            den += s;
-        }
-
-        return num / den;
-    }
-
-    measurement2D measure()
-    {
-        return measurement2D{step, magnetization(), meanClusterSize()};
-    }
-
-    virtual std::vector<interaction2D> getInteractions(Point2D p) = 0;
+    virtual std::vector<interaction2D> getInteractions2D(Point2D p) = 0;
     virtual double deltaH(Point2D p) = 0;
+
+    double deltaH(int index) override
+    {
+        Point2D p = getCoordFromIndex(index);
+        return deltaH(p);
+    }
+
+    std::vector<Interaction> getInteractions(int index) override
+    {
+        Point2D p = getCoordFromIndex(index);
+        std::vector<interaction2D> interactions2D = getInteractions2D(p);
+        std::vector<Interaction> interactions;
+
+        for (const interaction2D &interaction : interactions2D)
+        {
+            int neighborIndex = interaction.neighbor.x * size + interaction.neighbor.y;
+            interactions.push_back(Interaction{neighborIndex, interaction.J});
+        }
+
+        return interactions;
+    }
+
+    std::vector<double> FourierNorm(fftw_complex* out)
+    {
+        std::vector<double> norms(size * size);
+        for (int i = 0; i < size * size; i++)
+        {
+            norms[i] = std::sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
+        }
+        return norms;
+    }
+
+    void measureFourier()
+    {
+        int N = size;
+
+        //fyld input arrayet med spin-konfigurationen
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                in[i*N + j][0] = spins[i * N + j]; // real part
+                in[i*N + j][1] = 0.0; // imag part
+            }
+        }
+        //kør magien
+        fftw_execute(p);
+        //output Fourier transformen til trackeren (skrevet med god gammel python syntax)
+
+        std::vector<double> norm = FourierNorm(out);
+
+        for (int i = 0; i < N * N; i++) {
+            fourier.normSum[i] += norm[i];
+        }
+
+        fourier.counter++;
+
+    }
 };
 
 // square structure with normal periodic boundary conditions
@@ -257,7 +173,7 @@ class SquareLattice2D : public Lattice2D
 public:
     SquareLattice2D(int sizeArg, double BArg = 0) : Lattice2D(sizeArg, BArg) {}
 
-    std::vector<interaction2D> getInteractions(Point2D p) override
+    std::vector<interaction2D> getInteractions2D(Point2D p) override
     {
         std::vector<interaction2D> interactions;
         double J = 1; // Interaction strength in units of k_B (J/k_B)
@@ -274,7 +190,7 @@ public:
     {
         double H = -B; // B is magnetic moment times magnetic field
 
-        for (const interaction2D &interaction : getInteractions(p))
+        for (const interaction2D &interaction : getInteractions2D(p))
         {
             H -= getSpin(interaction.neighbor) * interaction.J; // Her mangler p's eget spin, som skal indgå i beregningen af dH
         }
@@ -283,6 +199,7 @@ public:
 
         return dH;
     }
+    
 };
 
 // square structure with warped periodic boundary conditions
@@ -291,7 +208,7 @@ class FunkySquareLattice2D : public Lattice2D
 public:
     FunkySquareLattice2D(int sizeArg, double BArg = 0) : Lattice2D(sizeArg, BArg) {}
 
-    std::vector<interaction2D> getInteractions(Point2D p) override
+    std::vector<interaction2D> getInteractions2D(Point2D p) override
     {
         std::vector<interaction2D> interactions;
         double J = 1; // Interaction strength in units of k_B (J/k_B)
@@ -323,7 +240,7 @@ public:
     {
         double H = -B;
 
-        for (const interaction2D &interaction : getInteractions(p))
+        for (const interaction2D &interaction : getInteractions2D(p))
         {
             H -= getSpin(interaction.neighbor) * interaction.J; // Her mangler p's eget spin, som skal indgå i beregningen af dH
         }
@@ -340,28 +257,28 @@ class TriangleLattice2D : public Lattice2D
 public:
     TriangleLattice2D(int sizeArg, double BArg = 0) : Lattice2D(sizeArg, BArg) {}
 
-    std::vector<interaction2D> getInteractions(Point2D p) override
+    std::vector<interaction2D> getInteractions2D(Point2D p) override
     {
         std::vector<interaction2D> interactions;
         double J = -1; // Interaction strength in units of k_B (J/k_B)
 
-        if (p.x % 2 == 1)
+        if (p.x % 2 == 1) //lige rækker er rykket ind mod højre ift. square
         {
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y - 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{((p.x - 1) % size + size) % size, (p.y) % size}, J}); //venste
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J}); //højre
+            interactions.push_back(interaction2D{Point2D{((p.x - 1) % size + size) % size, (p.y + 1) % size}, J}); //nordvest
+            interactions.push_back(interaction2D{Point2D{((p.x - 1) % size + size) % size, ((p.y - 1) % size + size) % size}, J}); //sydvest
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J}); //nordøst
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, ((p.y - 1) % size + size) % size}, J}); //sydøst
         }
-        else
+        else //ulige rækker 
         {
-            interactions.push_back(interaction2D{Point2D{(p.x - 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y - 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y + 1) % size}, J});
-            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y - 1) % size}, J});
+            interactions.push_back(interaction2D{Point2D{((p.x - 1) % size + size) % size, (p.y) % size}, J}); //venste
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y) % size}, J}); //højre
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, (p.y + 1) % size}, J}); //nordvest
+            interactions.push_back(interaction2D{Point2D{(p.x) % size, ((p.y - 1) % size + size) % size}, J}); //sydvest
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, (p.y + 1) % size}, J}); //nordøst
+            interactions.push_back(interaction2D{Point2D{(p.x + 1) % size, ((p.y - 1) % size + size) % size}, J}); //sydøst
         }
         return interactions;
     }
@@ -370,7 +287,7 @@ public:
     {
         double H = -B;
 
-        for (const interaction2D &interaction : getInteractions(p))
+        for (const interaction2D &interaction : getInteractions2D(p))
         {
             H -= getSpin(interaction.neighbor) * interaction.J; // Her er p's eget spin faktoriseret ud, se i beregningen af dH
         }

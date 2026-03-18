@@ -1,4 +1,4 @@
-#include "Lattices2D.hpp"
+#include "Lattices.hpp"
 
 #include <vector>
 

@@ -7,7 +7,7 @@ from scipy.stats import gaussian_kde
 import seaborn as sns
 
 temperatures = np.loadtxt("output/temperatures.csv", delimiter=",", skiprows=0)
-# temperatures = temperatures[temperatures == 2.0]  # Fjern eventuelle negative eller nul temperaturer
+#temperatures = temperatures[temperatures == 2.25]  # Fjern eventuelle negative eller nul temperaturer
 data = np.loadtxt("output/magnetization.csv", delimiter=",", skiprows=1)
 
 # Normalisering af temperaturintervallet
@@ -20,8 +20,8 @@ avg_magnetizations = []
 
 for T in temperatures:
     plotdata = data[data[:, 0] == T]
-    steps = plotdata[:, 1]
-    magnetization = plotdata[:, 2]
+    steps = plotdata[:, 2]
+    magnetization = plotdata[:, 3]
 
     # if magnetization[-1] < 0:
     #     magnetization *= -1
@@ -55,7 +55,7 @@ plt.ylabel("Average Magnetization (last 80% of steps)")
 plt.title("Average Magnetization vs Temperature")
 plt.grid()
 plt.savefig("avg_magnetization_vs_temperature.png", dpi=300)
-#plt.show()
+plt.show()
 
 
 
@@ -72,7 +72,7 @@ for t in temperatures:
 
     bins = np.linspace(0, 1, 200)  # Juster antallet af bins efter behov
 
-    bins, edges = np.histogram(plotdata[:, 2], bins=100, density=True)
+    bins, edges = np.histogram(plotdata[:, 3], bins=100, density=True)
     bin_centers = 0.5 * (edges[1:] + edges[:-1])
 
     plt.plot(bin_centers, bins, label=f"Temperature={t}")
@@ -88,7 +88,7 @@ plt.title("Magnetization Distribution for Different Temperatures")
 plt.grid()
 plt.savefig("magnetization_distribution.png", dpi=300)
 # plt.legend()
-#plt.show()
+plt.show()
 
 plt.plot(temperatures, magnetization_guesses, marker='o')
 plt.xlabel("Temperature")
@@ -96,9 +96,9 @@ plt.ylabel("Most Probable Magnetization")
 plt.title("Most Probable Magnetization vs Temperature")
 plt.grid()
 plt.savefig("most_probable_magnetization_vs_temperature.png", dpi=300)
-#plt.show()
+plt.show()
 
-
+'''
 # even more signal processing - kde
 
 kdemaxes = []
@@ -111,7 +111,7 @@ for t in temperatures:
 
     plotdata = plotdata[-last_80_percent:]
 
-    kde = gaussian_kde(plotdata[:, 2])
+    kde = gaussian_kde(plotdata[:, 3])
     x = np.linspace(0, 1, 1000)
     kde_values = kde(x)
     plt.plot(x, kde_values, label=f"Temperature={t}")
@@ -137,7 +137,7 @@ plt.title("Most Probable Magnetization (KDE) vs Temperature")
 plt.grid()
 plt.savefig("most_probable_magnetization_kde_vs_temperature.png", dpi=300)
 #plt.show()
-
+'''
 
 # kdeplot
 
@@ -149,7 +149,7 @@ plt.savefig("most_probable_magnetization_kde_vs_temperature.png", dpi=300)
 
 #     plotdata = plotdata[-last_80_percent:]
 
-#     sns.kdeplot(plotdata[:, 2], label=f"Temperature={t}")
+#     sns.kdeplot(plotdata[:, 3], label=f"Temperature={t}")
 
 # plt.xlabel("Magnetization")
 # plt.ylabel("Density")
