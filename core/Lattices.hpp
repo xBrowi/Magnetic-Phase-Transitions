@@ -32,10 +32,18 @@ struct Interaction
     double J; // OBS: IN UNITS OF K_B (J/K_B)
 };
 
-struct TrackFourier
+struct TrackMeasurements
 {
     int counter;
-    std::vector<double> normSum; 
+    //til fourier
+    std::vector<double> normKvadratSum;
+    std::vector<double> normKvadratKvadratSum;
+
+    //til susceptibilit og specifik varme
+    double magnetiseringSum;
+    double magnetiseringKvadratSum;
+    double hamiltonSum;
+    double hamiltonKvadratSum;
 };
 
 
@@ -48,7 +56,7 @@ protected:
     long int step;
     std::vector<int> spins;
     double B;
-    TrackFourier fourier;
+    TrackMeasurements measurementTracker;
 
     // Random number generator (rng)
     std::mt19937 rng{std::random_device{}()};
@@ -88,9 +96,9 @@ public:
         return B;
     }
 
-    TrackFourier getFourier()
+    TrackMeasurements getMeasurements()
     {
-        return fourier;
+        return measurementTracker;
     }
 
     void setB(double argB)

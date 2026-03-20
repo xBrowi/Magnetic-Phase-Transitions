@@ -29,6 +29,18 @@ struct MCParameters
     double stabilizing = 0.2;
 };
 
+struct MCFourierResult
+{
+    std::vector<double> normKvadrat = std::vector<double>();
+    std::vector<double> normKvadratVarians = std::vector<double>();
+
+    double magnetisering;
+    double magnetiseringVarians;
+
+    double hamilton;
+    double hamiltonVarians;
+};
+
 void MCStepMetropolis(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
 {
     int p = lattice.getRandomLatticeIndex();
@@ -142,7 +154,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
         if (i % params.measurementInterval == 0)
         {
             measurements.push_back(lattice->measure());
-            if (params.printProgress)
+            if (params.printProgress)https://prod.liveshare.vsengsaas.visualstudio.com/join?B7823A03297AC889E51E91316FF523F5A898
             {
                 std::lock_guard<std::mutex> lock(mcPrintMutex());
                 //lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20); // doesn't work in n dimensions
@@ -190,9 +202,8 @@ std::vector<std::vector<Measurement>> runParallelMCSimulation(std::vector<MCPara
     return allMeasurements;
 }
 
-std::vector<double> runFourierMCSimulation(const MCParameters &params)
+MCFourierResult runFourierMCSimulation(const MCParameters &params)
 {
-    std::vector<double> FourierNorms;
     std::mt19937 rng{std::random_device{}()};
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
 
@@ -205,7 +216,7 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
         break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
-        return FourierNorms;
+        break;
     }
 
     lattice->initializeFourier();
@@ -220,7 +231,7 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
         MCStep(*lattice, params.temperature, rng, distReal);
         if (i % params.measurementInterval == 0 && double(i)/params.totalStepCount > params.stabilizing)
         {
-            lattice->measureFourier();
+            lattice->updateMeasurementTracker();
         }
 
         if (i % (params.totalStepCount / 50) == 0)
@@ -235,30 +246,34 @@ std::vector<double> runFourierMCSimulation(const MCParameters &params)
         std::cout << "Simulation complete for T = " << params.temperature << ", B = " << params.B << ", size = " << params.size << "\n";
     }
 
-    std::vector<double> output = lattice->getFourier().normSum;
-    int sampleCount = lattice->getFourier().counter;
+    TrackMeasurements measurements = lattice->getMeasurements();
+    MCFourierResult output;
 
-    if (sampleCount > 0)
+    for (size_t i = 0; i < measurements.normKvadratSum.size(); ++i)
     {
-        for (double &val : output)
-        {
-            val /= sampleCount; // Average over measurements
-        }
+        output.normKvadrat.push_back(measurements.normKvadratSum[i] / measurements.counter);
+        output.normKvadratVarians.push_back((measurements.normKvadratKvadratSum[i] / measurements.counter) - (output.normKvadrat.back() * output.normKvadrat.back()) / measurements.counter); // Varians af normKvadrat, normaliseret
     }
+
+    output.magnetisering = measurements.magnetiseringSum / measurements.counter;
+    output.magnetiseringVarians = (measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum * measurements.magnetiseringSum) / measurements.counter; // Varians af magnetisering, normaliseret
+    output.hamilton = measurements.hamiltonSum / measurements.counter;
+    output.hamiltonVarians = (measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum * measurements.hamiltonSum) / measurements.counter; // Varians af hamilton, normaliseret
+
+    // FIX DET ER SKRAMMEL DET VIRKER IK!!!!!!!!!
 
     lattice->freeFourier();
     delete lattice;
     return output;
 }
-
-void writeFourierMCResultsToArray(std::vector<std::vector<double>> &allMeasurements, const MCParameters &params, int index)
+void writeFourierMCResultsToArray(std::vector<MCFourierResult> &allMeasurements, const MCParameters &params, int index)
 {
     allMeasurements[index] = runFourierMCSimulation(params);
 }
 
-std::vector<std::vector<double>> runParallelFourierMCSimulation(std::vector<MCParameters> &paramsList)
+std::vector<MCFourierResult> runParallelFourierMCSimulation(std::vector<MCParameters> &paramsList)
 {
-    std::vector<std::vector<double>> allMeasurements(paramsList.size());
+    std::vector<MCFourierResult> allMeasurements(paramsList.size());
 
     std::vector<std::thread> threads;
     unsigned int hw = std::thread::hardware_concurrency();

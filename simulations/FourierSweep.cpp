@@ -19,22 +19,19 @@ int main()
 
     for (double T = 2; T <= 4; T += 0.2)
     {
-        for (double B = -1.0; B <= 1.1; B += 0.25)
-        {
-            MCParameters params;
-            params.latticeType = LatticeType::FunkySquare;
-            params.size = 128;
-            params.temperature = T;
-            params.B = B;
-            params.totalStepCount = 1e9;
-            params.measurementInterval = 100'000;
-            params.randomize = true;
-            params.printProgress = false;
-            paramsList.push_back(params);
-        }
+        MCParameters params;
+        params.latticeType = LatticeType::FunkySquare;
+        params.size = 32;
+        params.temperature = T;
+        params.B = 0.0;
+        params.totalStepCount = 1e5;
+        params.measurementInterval = 1'000;
+        params.randomize = true;
+        params.printProgress = false;
+        paramsList.push_back(params);
     }
 
-    std::vector<std::vector<double>> allMeasurements = runParallelFourierMCSimulation(paramsList);
+    std::vector<MCFourierResult> allMeasurements = runParallelFourierMCSimulation(paramsList);
 
     outFile << "paramsliste, gennemsnitlige koefficient norm for hver simulation\n";
     for (size_t i = 0; i < paramsList.size(); ++i)
@@ -44,12 +41,26 @@ int main()
         outFile << paramsList[i].B << ",";
         outFile << paramsList[i].totalStepCount << ",";
         outFile << paramsList[i].measurementInterval<< ",";
+        outFile << "\n";
 
-        for (const double &m : allMeasurements[i])
+        outFile << allMeasurements[i].magnetisering << ",";
+        outFile << allMeasurements[i].magnetiseringVarians << ",";
+        outFile << allMeasurements[i].hamilton << ",";
+        outFile << allMeasurements[i].hamiltonVarians << ",";
+        outFile << "\n";
+
+        for (const double &m : allMeasurements[i].normKvadrat)
         {
             outFile << m << ",";
         }
         outFile << "\n";
+
+        for (const double &m : allMeasurements[i].normKvadratVarians)
+        {
+            outFile << m << ",";
+        }
+        outFile << "\n";
+
     }
 
     outFile.close();

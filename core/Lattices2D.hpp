@@ -43,7 +43,7 @@ public:
         step = 0;
         spins = std::vector<int>(sizeArg * sizeArg, 1);
         distIndex = std::uniform_int_distribution<int>(0, static_cast<int>(spins.size() - 1));
-        fourier = {0,std::vector<double>(sizeArg*sizeArg,0)};
+        measurementTracker = {0,std::vector<double>(sizeArg*sizeArg,0),std::vector<double>(sizeArg*sizeArg,0),0,0,0,0};
     }
 
     void initializeFourier()
@@ -158,38 +158,54 @@ public:
         return interactions;
     }
 
-    std::vector<double> FourierNorm(fftw_complex* out)
+    std::vector<double> FourierNormKvadrat(fftw_complex* out)
     {
         std::vector<double> norms(size * size);
         for (int i = 0; i < size * size; i++)
         {
-            norms[i] = std::sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
+            norms[i] = out[i][0] * out[i][0] + out[i][1] * out[i][1];
         }
         return norms;
     }
 
-    void measureFourier()
+    void updateMeasurementTracker()
     {
         int N = size;
 
+        measurementTracker.counter++;
+        
         //fyld input arrayet med spin-konfigurationen
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
                 in[i*N + j][0] = spins[i * N + j]; // real part
                 in[i*N + j][1] = 0.0; // imag part
+                for ( interaction2D &interaction : getInteractions2D({i,j}))
+                {
+                    double hamiltonContribution = -getSpin({i,j}) * getSpin(interaction.neighbor) * interaction.J / 2; // Hamiltonian contribution from this interaction (divided by 2 to avoid double counting)
+                    measurementTracker.hamiltonSum += hamiltonContribution; // Hamiltonian sum
+                    measurementTracker.hamiltonKvadratSum += hamiltonContribution * hamiltonContribution; // Hamiltonian kvadrat sum
+                }
             }
         }
         //kør magien
         fftw_execute(p);
         //output Fourier transformen til trackeren (skrevet med god gammel python syntax)
 
-        std::vector<double> norm = FourierNorm(out);
+        std::vector<double> normKvadrat = FourierNormKvadrat(out);
 
         for (int i = 0; i < N * N; i++) {
-            fourier.normSum[i] += norm[i];
+            measurementTracker.normKvadratSum[i] += normKvadrat[i];
+            measurementTracker.normKvadratKvadratSum[i] += normKvadrat[i] * normKvadrat[i];
         }
 
-        fourier.counter++;
+        measurementTracker.magnetiseringSum += std::sqrt(normKvadrat[0]) / (N * N); // magnetisering er norm af k=0 komponenten, normaliseret
+        measurementTracker.magnetiseringKvadratSum += (normKvadrat[0]) / (N * N * N * N); // kvadratet af magnetiseringen
+        
+
+
+
+
+
 
     }
 };
