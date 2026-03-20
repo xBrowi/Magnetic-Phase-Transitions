@@ -8,9 +8,8 @@ from scipy.optimize import curve_fit
 
 data = np.genfromtxt("output/fourier_sweep_output.csv", delimiter=",", skip_header=1)
 
-print("hej")
-
-plotdata = data[31,5:-1]
+'''
+plotdata = data[31,5:-1] #-1 fordi vi har et trailing NaN fra trailing komma
 #plotdata[0] = 0
 print(plotdata)
 print(plotdata.shape)
@@ -21,6 +20,25 @@ plotdatawrapped = np.fft.fftshift(plotdata2D)
 
 cmap = cm.viridis
 
+'''
+
+plotdata = data[:,5:-1]
+
+N = int(np.sqrt(len(plotdata[1])))
+print(N)
+
+
+plotdata1D = plotdata[:,(N*N//2):(N*N//2+N)]
+
+for i in range(len(plotdata1D)):
+    X = np.arange(len(plotdata1D[i]))
+    plt.plot(X,np.fft.fftshift(plotdata1D[i]),label = f"fourier ved temp {data[i,1]}")
+
+plt.title("singulær?")
+#plt.legend()
+plt.savefig("singulært_plot.png")
+
+'''
 
 plotdatamidt = plotdatawrapped[len(plotdatawrapped)//2]
 X = np.arange(-len(plotdatawrapped)//2, len(plotdatawrapped)//2)
@@ -59,7 +77,7 @@ plt.grid()
 plt.legend()
 plt.savefig("fourierpeak.png", dpi=500)
 
-
+'''
 
 
 
