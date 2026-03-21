@@ -14,7 +14,11 @@
 #include <mutex>
 #include <fftw3.h> //Fourierificering, comment ud indtil i installerer library
 
-
+enum stepType
+{
+    Metropolis,
+    Wolff
+};
 
 struct MCParameters
 {
@@ -27,6 +31,9 @@ struct MCParameters
     bool randomize = true;
     bool printProgress = false;
     double stabilizing = 0.2;
+    stepType stepAlgorithm = stepType::Metropolis;
+    int wolffStabilizationSteps = 0; // Number of Wolff steps for stabilization if wolffStabilization is true
+    
 };
 
 struct MCFourierResult
@@ -105,11 +112,17 @@ void MCStepWolff(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_rea
     lattice.stepForward();
 }
 
-void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
+void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal, stepType algorithm)
 {
     // Wolff eller Metropolis, implementer begge senere
-    //MCStepWolff(lattice, T, rng, distReal);
-    MCStepMetropolis(lattice, T, rng, distReal);
+    if (algorithm == stepType::Wolff)
+    {
+        MCStepWolff(lattice, T, rng, distReal);
+    }
+    else
+    {
+        MCStepMetropolis(lattice, T, rng, distReal);
+    }
 }
 
 inline std::mutex &mcPrintMutex()
@@ -152,7 +165,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
 
     for (long int i = 0; i < params.totalStepCount; i++)
     {
-        MCStep(*lattice, params.temperature, rng, distReal);
+        MCStep(*lattice, params.temperature, rng, distReal, params.stepAlgorithm);
         if (i % params.measurementInterval == 0)
         {
             measurements.push_back(lattice->measure());
@@ -230,10 +243,15 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
 
     for (long int i = 0; i < params.totalStepCount; i++)
     {
-        MCStep(*lattice, params.temperature, rng, distReal);
+        MCStep(*lattice, params.temperature, rng, distReal, params.stepAlgorithm);
         if (i % params.measurementInterval == 0 && double(i)/params.totalStepCount > params.stabilizing)
         {
             lattice->updateMeasurementTracker();
+        }
+        else if (params.wolffStabilizationSteps > 0) {
+            for (int j = 0; j < params.wolffStabilizationSteps; j++) {
+                MCStepWolff(*lattice, params.temperature, rng, distReal);
+            }
         }
 
         if (i % (params.totalStepCount / 50) == 0)

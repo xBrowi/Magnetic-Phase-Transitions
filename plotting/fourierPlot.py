@@ -53,11 +53,11 @@ kvadratFFT1Ds = [np.delete(kvadratFFT1Ds[i], middle_indices[i]) for i in range(s
 kvadratFFT1Dusikkerheder = [np.delete(kvadratFFT1Dusikkerheder[i], middle_indices[i]) for i in range(simCount)]
 
 # alle ffterne (subplots over hinanden med samme x akse?)
-for i in range(6,11):  # Adjust the range as needed
+for i in range(simCount):  # Adjust the range as needed
     X = np.arange(-sizes[i]//2, sizes[i]//2)
     X = np.delete(X, len(X)//2)  # Fjern det midterste punkt for at undgå singularitet i cauchy fit
     p0 = [max(kvadratFFT1Ds[i]), 5, 0]  # Initiale gæt for A, gamma og k
-    par, cov = curve_fit(cauchy_offset, X, kvadratFFT1Ds[i], p0=p0)
+    par, cov = curve_fit(cauchy_offset, X, kvadratFFT1Ds[i], p0=p0, maxfev=10000)
     gammas.append(par[1])
 
 
@@ -108,11 +108,11 @@ plt.title("Varmekapacitet som funktion af temperatur")
 plt.savefig("output/Fourier/Varmekapacitet.png")
 plt.close()
 # korrelationslængde som funktion af temp
-'''
-plt.plot(temps, gammas, 'o-')
+
+plt.plot(temps, 1/np.array(gammas), 'o-')
 plt.xlabel("Temperatur")
 plt.ylabel("Korrelationslængde (gamma)")
 plt.title("Korrelationslængde som funktion af temperatur")
 plt.savefig("output/Fourier/Korrelationslaengde.png")
 plt.close()
-'''
+

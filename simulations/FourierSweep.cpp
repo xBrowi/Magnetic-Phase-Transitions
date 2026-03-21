@@ -28,10 +28,14 @@ int main()
         params.size = 128;
         params.temperature = T;
         params.B = 0.0;
-        params.totalStepCount = 1e9;
-        params.measurementInterval = 1e5;
-        params.randomize = true;
+        params.totalStepCount = 2e9;
+        params.measurementInterval = 5e6;
+        params.randomize = false;
         params.printProgress = false;
+        params.stabilizing = 0.2;
+        stepType stepAlgorithm = stepType::Metropolis;
+        int wolffStabilizationSteps = 0; // sæt til 0 for ingen Wolff stabilisering
+
         paramsList.push_back(params);
     }
 
