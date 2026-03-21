@@ -174,6 +174,7 @@ public:
 
         measurementTracker.counter++;
         
+        double hamiltoncontributions = 0;
         //fyld input arrayet med spin-konfigurationen
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
@@ -182,11 +183,13 @@ public:
                 for ( interaction2D &interaction : getInteractions2D({i,j}))
                 {
                     double hamiltonContribution = -getSpin({i,j}) * getSpin(interaction.neighbor) * interaction.J / 2; // Hamiltonian contribution from this interaction (divided by 2 to avoid double counting)
-                    measurementTracker.hamiltonSum += hamiltonContribution; // Hamiltonian sum
-                    measurementTracker.hamiltonKvadratSum += hamiltonContribution * hamiltonContribution; // Hamiltonian kvadrat sum
+                    hamiltoncontributions += hamiltonContribution; // Hamiltonian sum
                 }
             }
         }
+        measurementTracker.hamiltonSum += hamiltoncontributions;
+        measurementTracker.hamiltonKvadratSum += hamiltoncontributions * hamiltoncontributions;
+        
         //kør magien
         fftw_execute(p);
         //output Fourier transformen til trackeren (skrevet med god gammel python syntax)

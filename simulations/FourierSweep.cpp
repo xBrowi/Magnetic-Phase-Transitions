@@ -13,19 +13,23 @@ int main()
     // time the simulation
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    std::ofstream outFile("output/fourier_sweep_output.csv");
+    std::ofstream parameterFile("output/Fourier/parameters.csv");
+    std::ofstream measurementsFile("output/Fourier/measurements.csv");
+    std::ofstream FFTFile("output/Fourier/kvadratFFT.csv");
+    std::ofstream FFTVarFile("output/Fourier/kvadratFFTvariance.csv");
+
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 2; T <= 4; T += 0.2)
+    for (double T = 1; T <= 3.51; T += 0.1)
     {
         MCParameters params;
         params.latticeType = LatticeType::FunkySquare;
-        params.size = 32;
+        params.size = 128;
         params.temperature = T;
         params.B = 0.0;
-        params.totalStepCount = 1e5;
-        params.measurementInterval = 1'000;
+        params.totalStepCount = 1e9;
+        params.measurementInterval = 1e5;
         params.randomize = true;
         params.printProgress = false;
         paramsList.push_back(params);
@@ -33,37 +37,40 @@ int main()
 
     std::vector<MCFourierResult> allMeasurements = runParallelFourierMCSimulation(paramsList);
 
-    outFile << "paramsliste, gennemsnitlige koefficient norm for hver simulation\n";
     for (size_t i = 0; i < paramsList.size(); ++i)
     {   
-        outFile << paramsList[i].size << ",";
-        outFile << paramsList[i].temperature << ",";
-        outFile << paramsList[i].B << ",";
-        outFile << paramsList[i].totalStepCount << ",";
-        outFile << paramsList[i].measurementInterval<< ",";
-        outFile << "\n";
+        parameterFile << paramsList[i].size << ",";
+        parameterFile << paramsList[i].temperature << ",";
+        parameterFile << paramsList[i].B << ",";
+        parameterFile << paramsList[i].totalStepCount << ",";
+        parameterFile << paramsList[i].measurementInterval<< ",";
+        parameterFile << "\n";
 
-        outFile << allMeasurements[i].magnetisering << ",";
-        outFile << allMeasurements[i].magnetiseringVarians << ",";
-        outFile << allMeasurements[i].hamilton << ",";
-        outFile << allMeasurements[i].hamiltonVarians << ",";
-        outFile << "\n";
+        measurementsFile << allMeasurements[i].count << ",";
+        measurementsFile << allMeasurements[i].magnetisering << ",";
+        measurementsFile << allMeasurements[i].magnetiseringVarians << ",";
+        measurementsFile << allMeasurements[i].hamilton << ",";
+        measurementsFile << allMeasurements[i].hamiltonVarians << ",";
+        measurementsFile << "\n";
 
         for (const double &m : allMeasurements[i].normKvadrat)
         {
-            outFile << m << ",";
+            FFTFile << m << ",";
         }
-        outFile << "\n";
+        FFTFile << "\n";
 
         for (const double &m : allMeasurements[i].normKvadratVarians)
         {
-            outFile << m << ",";
+            FFTVarFile << m << ",";
         }
-        outFile << "\n";
+        FFTVarFile << "\n";
 
     }
 
-    outFile.close();
+    parameterFile.close();
+    measurementsFile.close();
+    FFTFile.close();
+    FFTVarFile.close();
 
     auto endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = endTime - startTime;

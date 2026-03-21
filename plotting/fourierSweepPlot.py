@@ -22,6 +22,7 @@ cmap = cm.viridis
 
 '''
 
+
 plotdata = data[:,5:-1]
 
 N = int(np.sqrt(len(plotdata[1])))
@@ -37,6 +38,7 @@ for i in range(len(plotdata1D)):
 plt.title("singulær?")
 #plt.legend()
 plt.savefig("singulært_plot.png")
+
 
 '''
 

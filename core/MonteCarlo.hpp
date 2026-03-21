@@ -39,6 +39,8 @@ struct MCFourierResult
 
     double hamilton;
     double hamiltonVarians;
+
+    int count;
 };
 
 void MCStepMetropolis(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
@@ -106,8 +108,8 @@ void MCStepWolff(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_rea
 void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal)
 {
     // Wolff eller Metropolis, implementer begge senere
-    MCStepWolff(lattice, T, rng, distReal);
-    //MCStepMetropolis(lattice, T, rng, distReal);
+    //MCStepWolff(lattice, T, rng, distReal);
+    MCStepMetropolis(lattice, T, rng, distReal);
 }
 
 inline std::mutex &mcPrintMutex()
@@ -154,7 +156,7 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
         if (i % params.measurementInterval == 0)
         {
             measurements.push_back(lattice->measure());
-            if (params.printProgress)https://prod.liveshare.vsengsaas.visualstudio.com/join?B7823A03297AC889E51E91316FF523F5A898
+            if (params.printProgress)
             {
                 std::lock_guard<std::mutex> lock(mcPrintMutex());
                 //lattice->printLarge(0, lattice->getSize(), lattice->getSize() / 20); // doesn't work in n dimensions
@@ -252,13 +254,19 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
     for (size_t i = 0; i < measurements.normKvadratSum.size(); ++i)
     {
         output.normKvadrat.push_back(measurements.normKvadratSum[i] / measurements.counter);
-        output.normKvadratVarians.push_back((measurements.normKvadratKvadratSum[i] / measurements.counter) - (output.normKvadrat.back() * output.normKvadrat.back()) / measurements.counter); // Varians af normKvadrat, normaliseret
+        output.normKvadratVarians.push_back(
+            (measurements.normKvadratKvadratSum[i] / measurements.counter) 
+            - (measurements.normKvadratSum[i] / measurements.counter) * (measurements.normKvadratSum[i] / measurements.counter)
+        ); // Varians af normKvadrat, normaliseret
     }
 
     output.magnetisering = measurements.magnetiseringSum / measurements.counter;
-    output.magnetiseringVarians = (measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum * measurements.magnetiseringSum) / measurements.counter; // Varians af magnetisering, normaliseret
+    output.magnetiseringVarians = (measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter); // Varians af magnetisering, normaliseret
+    
     output.hamilton = measurements.hamiltonSum / measurements.counter;
-    output.hamiltonVarians = (measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum * measurements.hamiltonSum) / measurements.counter; // Varians af hamilton, normaliseret
+    output.hamiltonVarians = (measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter); // Varians af hamilton, normaliseret
+
+    output.count = measurements.counter;
 
     // FIX DET ER SKRAMMEL DET VIRKER IK!!!!!!!!!
 

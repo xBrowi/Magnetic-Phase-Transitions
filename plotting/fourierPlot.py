@@ -3,61 +3,116 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
-
-data = np.loadtxt("output/fourier_output.csv", delimiter=" ", skiprows=1)
-data2D = np.array(np.split(data, len(data)//128))
-print(data,data2D)
-
-norms = np.sqrt(data[:, 0]**2 + data[:, 1]**2)
-norms2D = np.sqrt(data2D[:,:,0]**2 + data2D[:,:,1]**2)
-norms2Dwrapped = np.fft.fftshift(norms2D) # shift the zero frequency component to the center of the spectrum
-X = np.linspace(0, 1, len(norms))
-X2D = np.linspace(0, 1, len(norms2D))
-print(X,"\n", norms)
+from scipy.optimize import curve_fit
 
 
+parameters = np.genfromtxt("output/Fourier/parameters.csv", delimiter=",", skip_header=0)
+measurements = np.genfromtxt("output/Fourier/measurements.csv", delimiter=",", skip_header=0)
+kvadratFFTs = np.genfromtxt("output/Fourier/kvadratFFT.csv", delimiter=",", skip_header=0)[:,:-1] #-1 fordi vi har et trailing NaN fra trailing komma
+kvadratFFTVars = np.genfromtxt("output/Fourier/kvadratFFTvariance.csv", delimiter=",", skip_header=0)[:,:-1]
 
-plt.plot(X,data[:,0], label="Real part")
-#plt.plot(X,data[1:,1], label="Imaginary part")
-plt.plot(X,norms, label="Norm")
+simCount = len(parameters)
 
-plt.xlabel("k (genereliseret frekvens)")
-plt.ylabel("Fourier Transform")
-plt.title("1D Fourier Transform")
+sizes = parameters[:,0]
+temps = parameters[:,1]
+
+counts = measurements[:,0]
+magnetiseringer = measurements[:,1]
+susceptibiliteter = measurements[:,2]
+energier = measurements[:,3]
+varmekapaciteter = measurements[:,4]
+
+kvadratFFT1Ds = []
+kvadratFFTVar1Ds = []
+
+
+#1D FFT
+for i in range(simCount):
+    
+    kvadratFFT2D = np.fft.fftshift(np.split(kvadratFFTs[i], sizes[i]))
+    kvadratFFT1D = kvadratFFT2D[int(sizes[i]//2)]  # Tag den midterste række (k_y = 0)
+    kvadratFFT1Ds.append(kvadratFFT1D)
+    
+
+    kvadratFFTVar2D = np.fft.fftshift(np.split(kvadratFFTVars[i], sizes[i]))
+    kvadratFFTVar1D = kvadratFFTVar2D[int(sizes[i]//2)]  # Tag den midterste række (k_y = 0)
+    kvadratFFTVar1Ds.append(kvadratFFTVar1D)
+
+kvadratFFT1Dusikkerheder = np.sqrt(kvadratFFTVar1Ds)
+kvadratFFT1Dusikkerheder /= np.sqrt(counts)[:, np.newaxis]  # Usikkerhed på gennemsnittet er standardafvigelsen delt med kvadratroden af antallet af målinger
+
+gammas = []
+
+#cauchy fordeling med offset for at plotte fittet
+def cauchy_offset(x, A, gamma, k):
+    return A/(np.pi*gamma*(1 + ((x)/gamma)**2)) + k
+
+# remove middle point for at undgå singularitet i cauchy fit
+middle_indices = [len(kvadratFFT1D)//2 for kvadratFFT1D in kvadratFFT1Ds]
+kvadratFFT1Ds = [np.delete(kvadratFFT1Ds[i], middle_indices[i]) for i in range(simCount)]
+kvadratFFT1Dusikkerheder = [np.delete(kvadratFFT1Dusikkerheder[i], middle_indices[i]) for i in range(simCount)]
+
+# alle ffterne (subplots over hinanden med samme x akse?)
+for i in range(6,11):  # Adjust the range as needed
+    X = np.arange(-sizes[i]//2, sizes[i]//2)
+    X = np.delete(X, len(X)//2)  # Fjern det midterste punkt for at undgå singularitet i cauchy fit
+    p0 = [max(kvadratFFT1Ds[i]), 5, 0]  # Initiale gæt for A, gamma og k
+    par, cov = curve_fit(cauchy_offset, X, kvadratFFT1Ds[i], p0=p0)
+    gammas.append(par[1])
+
+
+    X_plot = np.linspace(-sizes[i]//2, sizes[i]//2, 1000)
+
+    plt.errorbar(X, kvadratFFT1Ds[i], yerr=kvadratFFT1Dusikkerheder[i], fmt='.', label=f"Data Temp {temps[i]}")
+    plt.plot(X_plot, cauchy_offset(X_plot, *par), label=f"Cauchy Fit Temp {temps[i]}")
+
+    #plot startgæt
+    #plt.plot(X, cauchy_offset(X, *p0), label=f"Startgæt Temp {temps[i]}")
+    
+#plt.xlim(-sizes[i]//6, sizes[i]//6)
+plt.ylim(0, 1e5)
+
+plt.xlabel(r"$k_x$")
+plt.ylabel(r"$|\tilde{m}(k_x, k_y=0)|^2$")
+plt.title("1D Fourier som funktion af tid")
 plt.legend()
-plt.savefig("fourier_plot_1D.png", dpi=500)
+plt.savefig("output/Fourier/1D_Fouriers.png",dpi =600)
 plt.close()
 
-
-
-norm = mcolors.Normalize(vmin=0, vmax=len(norms2D))
-cmap = cm.viridis
-
-for i in range(len(norms2D)):
-    plt.plot(X2D, norms2D[i,:],color = cmap(norm(i)), label=f"Row {i}")
-
-
-
-plt.title("2D reciprocal space?")
-#plt.legend()
-plt.savefig("fourier_plot_2D.png", dpi=500)
+# magnetisering som funktion af temp
+plt.plot(temps, magnetiseringer, 'o-')
+plt.xlabel("Temperatur")
+plt.ylabel("Magnetisering")
+plt.title("Magnetisering som funktion af temperatur")
+plt.savefig("output/Fourier/Magnetisering.png")
 plt.close()
-
-
-
-# Plot heatmap: rows -> temperatures, columns -> fields
-fig, ax = plt.subplots(figsize=(32, 32))
-im = ax.imshow(norms2Dwrapped, origin='lower', aspect='auto', cmap=cmap)
-
-# set ticks to the unique values
-#ax.set_xticks(np.arange(len(B_unique)))
-#ax.set_xticklabels([str(x) for x in B_unique], rotation=45)
-#ax.set_yticks(np.arange(len(temperatures_unique)))
-#ax.set_yticklabels([str(x) for x in temperatures_unique])
-
-ax.set_xlabel(r"$k_x$")
-ax.set_ylabel(r"$k_y$")
-ax.set_title("2D Fourier Transform Heatmap")
-fig.colorbar(im, ax=ax, label="norm of Fourier Transform")
-plt.tight_layout()
-plt.savefig('fourier_heatmap.png', dpi=300)
+# susceptibilitet som funktion af temp 
+plt.plot(temps, susceptibiliteter, 'o-')
+plt.xlabel("Temperatur")
+plt.ylabel("Susceptibilitet")
+plt.title("Susceptibilitet som funktion af temperatur")
+plt.savefig("output/Fourier/susceptibilitet.png")
+plt.close()
+# energi som funktion af temp
+plt.plot(temps, energier, 'o-')
+plt.xlabel("Temperatur")
+plt.ylabel("Energi")
+plt.title("Energi som funktion af temperatur")
+plt.savefig("output/Fourier/Energi.png")
+plt.close()
+# varmekapacitet som funktion af temp
+plt.plot(temps, varmekapaciteter, 'o-')
+plt.xlabel("Temperatur")
+plt.ylabel("Varmekapacitet")
+plt.title("Varmekapacitet som funktion af temperatur")
+plt.savefig("output/Fourier/Varmekapacitet.png")
+plt.close()
+# korrelationslængde som funktion af temp
+'''
+plt.plot(temps, gammas, 'o-')
+plt.xlabel("Temperatur")
+plt.ylabel("Korrelationslængde (gamma)")
+plt.title("Korrelationslængde som funktion af temperatur")
+plt.savefig("output/Fourier/Korrelationslaengde.png")
+plt.close()
+'''
