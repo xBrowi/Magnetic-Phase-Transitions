@@ -204,7 +204,7 @@ public:
 
         measurementTracker.magnetiseringSum += std::sqrt(normKvadrat[0]) / (N * N); // magnetisering er norm af k=0 komponenten, normaliseret
         measurementTracker.magnetiseringKvadratSum += (normKvadrat[0]) / (N * N * N * N); // kvadratet af magnetiseringen
-        measurementTracker.magnetiseringKvadratKvadratSum += (normKvadrat[0] * normKvadrat[0]) / (N * N * N * N * N * N * N * N); // kvadratet af variansen af magnetiseringen, normaliseret
+        measurementTracker.magnetiseringKvadratKvadratSum += (normKvadrat[0] * normKvadrat[0]) / (float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N)); // kvadratet af variansen af magnetiseringen, normaliseret
         
 
 
