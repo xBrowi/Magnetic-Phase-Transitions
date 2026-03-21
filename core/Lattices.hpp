@@ -6,8 +6,6 @@
 #include <random>
 #include <fftw3.h>
 
-
-
 // A measurement class for storing the results of MC simulations at a timestep.
 struct Measurement
 {
@@ -42,8 +40,10 @@ struct TrackMeasurements
     //til susceptibilit og specifik varme
     double magnetiseringSum;
     double magnetiseringKvadratSum;
+    double magnetiseringKvadratKvadratSum;
     double hamiltonSum;
     double hamiltonKvadratSum;
+    double hamiltonKvadratKvadratSum;
 };
 
 
@@ -143,6 +143,9 @@ public:
 
     virtual double deltaH(int p) = 0;
     virtual std::vector<Interaction> getInteractions(int p) = 0;
+    virtual void initializeFourier() = 0;
+    virtual void freeFourier() = 0;
+    virtual void updateMeasurementTracker() = 0;
 
     // generalized cluster size calculation for any lattice type and any dimensionality
 

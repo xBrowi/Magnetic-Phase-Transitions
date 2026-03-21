@@ -12,6 +12,7 @@
 #include <cmath>
 #include <thread>
 #include <mutex>
+#include <memory>
 #include <fftw3.h> //Fourierificering, comment ud indtil i installerer library
 
 enum stepType
@@ -43,9 +44,11 @@ struct MCFourierResult
 
     double magnetisering;
     double magnetiseringVarians;
+    long double magnetiseringVariansVarians;
 
     double hamilton;
     double hamiltonVarians;
+    long double hamiltonVariansVarians;
 
     int count;
 };
@@ -147,9 +150,9 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
     case LatticeType::FunkySquare:
         lattice = new FunkySquareLattice2D(params.size, params.B);
         break;
-    case LatticeType::Cubic:
-        lattice = new Cubic(params.size, params.B);
-        break;
+    // case LatticeType::Cubic:
+    //     lattice = new Cubic(params.size, params.B);
+    //     break;
     case LatticeType::OneD:
         lattice = new FreeLattice1D(params.size, params.B);
         break;
@@ -221,17 +224,27 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
 {
     std::mt19937 rng{std::random_device{}()};
     std::uniform_real_distribution<double> distReal{0.0, 1.0};
+    MCFourierResult output;
 
-    Lattice2D *lattice;
+    Lattice *lattice;
 
     switch (params.latticeType)
     {
+    // case LatticeType::Square:
+    //     lattice = new SquareLattice2D(params.size, params.B);
+    //     break;
     case LatticeType::FunkySquare:
         lattice = new FunkySquareLattice2D(params.size, params.B);
         break;
+    // case LatticeType::Cubic:
+    //     lattice = new Cubic(params.size, params.B);
+    //     break;
+    case LatticeType::OneD:
+        lattice = new FreeLattice1D(params.size, params.B);
+        break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
-        break;
+        return output;
     }
 
     lattice->initializeFourier();
@@ -248,7 +261,7 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
         {
             lattice->updateMeasurementTracker();
         }
-        else if (params.wolffStabilizationSteps > 0) {
+        else if (params.wolffStabilizationSteps > 0 && i % params.measurementInterval == 0 ) {
             for (int j = 0; j < params.wolffStabilizationSteps; j++) {
                 MCStepWolff(*lattice, params.temperature, rng, distReal);
             }
@@ -267,8 +280,6 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
     }
 
     TrackMeasurements measurements = lattice->getMeasurements();
-    MCFourierResult output;
-
     for (size_t i = 0; i < measurements.normKvadratSum.size(); ++i)
     {
         output.normKvadrat.push_back(measurements.normKvadratSum[i] / measurements.counter);
@@ -280,11 +291,16 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
 
     output.magnetisering = measurements.magnetiseringSum / measurements.counter;
     output.magnetiseringVarians = (measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter); // Varians af magnetisering, normaliseret
-    
+    output.magnetiseringVariansVarians = (measurements.magnetiseringKvadratKvadratSum / measurements.counter) - (measurements.magnetiseringKvadratSum / measurements.counter) * (measurements.magnetiseringKvadratSum / measurements.counter); // Varians af variansen af magnetiseringen, normaliseret
+
     output.hamilton = measurements.hamiltonSum / measurements.counter;
     output.hamiltonVarians = (measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter); // Varians af hamilton, normaliseret
+    output.hamiltonVariansVarians = (measurements.hamiltonKvadratKvadratSum / measurements.counter) - (measurements.hamiltonKvadratSum / measurements.counter) * (measurements.hamiltonKvadratSum / measurements.counter); // Varians af variansen af hamilton, normaliseret
 
     output.count = measurements.counter;
+
+    std::cout << "summer over magnetisering, varians og variansvarians, " << measurements.magnetiseringSum << ", " << measurements.magnetiseringKvadratSum << ", " << measurements.magnetiseringKvadratKvadratSum << "\n"; 
+    std::cout << "summer over hamilton, varians og variansvarians, " << measurements.hamiltonSum << ", " << measurements.hamiltonKvadratSum << ", " << measurements.hamiltonKvadratKvadratSum << "\n";
 
     // FIX DET ER SKRAMMEL DET VIRKER IK!!!!!!!!!
 

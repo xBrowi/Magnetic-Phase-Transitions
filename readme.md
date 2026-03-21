@@ -1,11 +1,9 @@
 compile:
-g++ (filNavn).cpp -o filNavn -O3
+g++ (filNavn).cpp -o filNavn -O3 -pthread -lfftw3
 
 run:
 ./filNavn
 
-fourier:
-library hedder fftw3
-på linux ligger det i /include allerede, på windows måske tilføj flaget:
-g++ (filNavn).cpp -o filNavn -O3 -pthread -lfftw3
-kommenter ud i core/MonteCarlo.hpp hvis i vil køre noget andet, lige nu er den overflødig da den ikke bliver brugt i measurement endnu
+OBS: pga fftwPlannerMutex i 1D og 2D tror jeg at ens computer pisser i bukserne hvis vi kører 1D og 2D samtidigt. ikke gør det lol.
+
+fourier: brug library fftw (3)

@@ -13,19 +13,19 @@ int main()
     // time the simulation
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    std::ofstream parameterFile("output/Fourier/parameters.csv");
-    std::ofstream measurementsFile("output/Fourier/measurements.csv");
-    std::ofstream FFTFile("output/Fourier/kvadratFFT.csv");
-    std::ofstream FFTVarFile("output/Fourier/kvadratFFTvariance.csv");
+    std::ofstream parameterFile("output/Fourier1D/parameters.csv");
+    std::ofstream measurementsFile("output/Fourier1D/measurements.csv");
+    std::ofstream FFTFile("output/Fourier1D/kvadratFFT.csv");
+    std::ofstream FFTVarFile("output/Fourier1D/kvadratFFTvariance.csv");
 
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 1; T <= 3.51; T += 0.5)
+    for (double T = 2.1; T <= 4.1; T += 0.4)
     {
         MCParameters params;
-        params.latticeType = LatticeType::FunkySquare;
-        params.size = 32;
+        params.latticeType = LatticeType::OneD;
+        params.size = 1024;
         params.temperature = T;
         params.B = 0.0;
         params.totalStepCount = 2e7;
@@ -33,8 +33,8 @@ int main()
         params.randomize = false;
         params.printProgress = false;
         params.stabilizing = 0.2;
-        stepType stepAlgorithm = stepType::Metropolis;
-        int wolffStabilizationSteps = 5; // sæt til 0 for ingen Wolff stabilisering
+        params.stepAlgorithm = stepType::Metropolis;
+        params.wolffStabilizationSteps = 5; // sæt til 0 for ingen Wolff stabilisering
 
         paramsList.push_back(params);
     }
@@ -53,8 +53,10 @@ int main()
         measurementsFile << allMeasurements[i].count << ",";
         measurementsFile << allMeasurements[i].magnetisering << ",";
         measurementsFile << allMeasurements[i].magnetiseringVarians << ",";
+        measurementsFile << allMeasurements[i].magnetiseringVariansVarians << ",";
         measurementsFile << allMeasurements[i].hamilton << ",";
         measurementsFile << allMeasurements[i].hamiltonVarians << ",";
+        measurementsFile << allMeasurements[i].hamiltonVariansVarians << ",";
         measurementsFile << "\n";
 
         for (const double &m : allMeasurements[i].normKvadrat)

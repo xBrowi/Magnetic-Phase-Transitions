@@ -4,7 +4,7 @@
 #include "Lattices.hpp"
 #include <mutex>
 
-inline std::mutex &fftwPlannerMutex()
+inline std::mutex &fftwPlannerMutex2D()
 {
     static std::mutex mtx;
     return mtx;
@@ -52,7 +52,7 @@ public:
         in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
         out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * N);
         {
-            std::lock_guard<std::mutex> lock(fftwPlannerMutex());
+            std::lock_guard<std::mutex> lock(fftwPlannerMutex2D());
             p = fftw_plan_dft_2d(N, N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
         }
     }
@@ -60,7 +60,7 @@ public:
     void freeFourier()
     {
         {
-            std::lock_guard<std::mutex> lock(fftwPlannerMutex());
+            std::lock_guard<std::mutex> lock(fftwPlannerMutex2D());
             if (p != nullptr)
             {
                 fftw_destroy_plan(p);
@@ -189,6 +189,7 @@ public:
         }
         measurementTracker.hamiltonSum += hamiltoncontributions;
         measurementTracker.hamiltonKvadratSum += hamiltoncontributions * hamiltoncontributions;
+        measurementTracker.hamiltonKvadratKvadratSum += hamiltoncontributions * hamiltoncontributions * hamiltoncontributions * hamiltoncontributions;
         
         //kør magien
         fftw_execute(p);
@@ -203,6 +204,7 @@ public:
 
         measurementTracker.magnetiseringSum += std::sqrt(normKvadrat[0]) / (N * N); // magnetisering er norm af k=0 komponenten, normaliseret
         measurementTracker.magnetiseringKvadratSum += (normKvadrat[0]) / (N * N * N * N); // kvadratet af magnetiseringen
+        measurementTracker.magnetiseringKvadratKvadratSum += (normKvadrat[0] * normKvadrat[0]) / (N * N * N * N * N * N * N * N); // kvadratet af variansen af magnetiseringen, normaliseret
         
 
 
