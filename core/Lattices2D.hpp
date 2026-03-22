@@ -284,7 +284,7 @@ public:
         return interactions;
     }
 
-    double deltaH(Point2D p) override
+    double deltaHOld(Point2D p)
     {
         double H = -B;
 
@@ -297,6 +297,38 @@ public:
 
         return dH;
     }
+
+    double deltaHFast(Point2D p)
+    {
+        const Point2D left = (p.x > 0)
+            ? Point2D{p.x - 1, p.y}
+            : Point2D{size - 1 - p.y, size - 1};
+        const Point2D right = (p.x < size - 1)
+            ? Point2D{p.x + 1, p.y}
+            : Point2D{size - 1 - p.y, 0};
+        const Point2D down = (p.y > 0)
+            ? Point2D{p.x, p.y - 1}
+            : Point2D{size - 1, size - 1 - p.x};
+        const Point2D up = (p.y < size - 1)
+            ? Point2D{p.x, p.y + 1}
+            : Point2D{0, size - 1 - p.x};
+
+        const int neighborSum =
+            getSpin(left) +
+            getSpin(right) +
+            getSpin(down) +
+            getSpin(up);
+
+        return 2.0 * getSpin(p) * (B + neighborSum);
+    }
+
+    double deltaH(Point2D p) override
+    {
+        return deltaHFast(p); // assumes J=1 for all interactions. nearest neighbor interactions only
+        // return deltaHOld(p);
+    }
+
+
 };
 
 // triangular structure with normal periodic boundary conditions (J defaults -1, antiferromagnetic)
@@ -331,7 +363,7 @@ public:
         return interactions;
     }
 
-    double deltaH(Point2D p) override
+    double deltaHold(Point2D p)
     {
         double H = -B;
 
@@ -343,6 +375,44 @@ public:
         double dH = -2 * getSpin(p) * H;
 
         return dH;
+    }
+
+    double deltaHFast(Point2D p)
+    {
+        auto wrap = [this](int v) { return (v % size + size) % size; };
+
+        const Point2D left{wrap(p.x - 1), p.y};
+        const Point2D right{wrap(p.x + 1), p.y};
+
+        const Point2D n1 = (p.x % 2 == 1)
+            ? Point2D{wrap(p.x - 1), wrap(p.y + 1)}
+            : Point2D{p.x, wrap(p.y + 1)};
+        const Point2D n2 = (p.x % 2 == 1)
+            ? Point2D{wrap(p.x - 1), wrap(p.y - 1)}
+            : Point2D{p.x, wrap(p.y - 1)};
+        const Point2D n3 = (p.x % 2 == 1)
+            ? Point2D{p.x, wrap(p.y + 1)}
+            : Point2D{wrap(p.x + 1), wrap(p.y + 1)};
+        const Point2D n4 = (p.x % 2 == 1)
+            ? Point2D{p.x, wrap(p.y - 1)}
+            : Point2D{wrap(p.x + 1), wrap(p.y - 1)};
+
+        const int neighborSum =
+            getSpin(left) +
+            getSpin(right) +
+            getSpin(n1) +
+            getSpin(n2) +
+            getSpin(n3) +
+            getSpin(n4);
+
+        const double J = -1.0;
+        return 2.0 * getSpin(p) * (B + J * neighborSum);
+    }
+
+    double deltaH(Point2D p) override
+    {
+        return deltaHFast(p); // assumes J=-1 for all interactions. nearest neighbor interactions only
+        // return deltaHold(p);
     }
 };
 
