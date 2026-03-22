@@ -19,8 +19,10 @@ temps = parameters[:,1]
 counts = measurements[:,0]
 magnetiseringer = measurements[:,1]
 susceptibiliteter = measurements[:,2]
-energier = measurements[:,3]
-varmekapaciteter = measurements[:,4]
+susceptibilitetvarianser = measurements[:,3]
+energier = measurements[:,4]
+varmekapaciteter = measurements[:,5]
+varmevarianser = measurements[:,6]
 
 kvadratFFT1Ds = []
 kvadratFFTVar1Ds = []
@@ -42,6 +44,7 @@ kvadratFFT1Dusikkerheder = np.sqrt(kvadratFFTVar1Ds)
 kvadratFFT1Dusikkerheder /= np.sqrt(counts)[:, np.newaxis]  # Usikkerhed på gennemsnittet er standardafvigelsen delt med kvadratroden af antallet af målinger
 
 gammas = []
+gammaUsikkerheder = []
 
 #cauchy fordeling med offset for at plotte fittet
 def cauchy_offset(x, A, gamma, k):
@@ -56,8 +59,9 @@ kvadratFFT1Dusikkerheder = [np.delete(kvadratFFT1Dusikkerheder[i], middle_indice
 for i in range(simCount):  # Adjust the range as needed
     X = np.arange(-sizes[i]//2, sizes[i]//2)
     X = np.delete(X, len(X)//2)  # Fjern det midterste punkt for at undgå singularitet i cauchy fit
-    p0 = [max(kvadratFFT1Ds[i]), 5, 0]  # Initiale gæt for A, gamma og k
-    par, cov = curve_fit(cauchy_offset, X, kvadratFFT1Ds[i], p0=p0, maxfev=10000)
+    p0 = [max(kvadratFFT1Ds[i]), 10, min(kvadratFFT1Ds[i])]  # Initiale gæt for A, gamma og k
+    par, cov = curve_fit(cauchy_offset, X, kvadratFFT1Ds[i], p0=p0, maxfev=50000)
+    gammaUsikkerheder.append(np.sqrt(cov[1][1]))
     gammas.append(par[1])
 
 
@@ -80,28 +84,28 @@ plt.savefig("output/Fourier/1D_Fouriers.png",dpi =600)
 plt.close()
 
 # magnetisering som funktion af temp
-plt.plot(temps, magnetiseringer, 'o-')
+plt.errorbar(temps, magnetiseringer, yerr=np.sqrt(susceptibiliteter), fmt='o-')
 plt.xlabel("Temperatur")
 plt.ylabel("Magnetisering")
 plt.title("Magnetisering som funktion af temperatur")
 plt.savefig("output/Fourier/Magnetisering.png")
 plt.close()
 # susceptibilitet som funktion af temp 
-plt.plot(temps, susceptibiliteter, 'o-')
+plt.errorbar(temps, susceptibiliteter, yerr=np.sqrt(susceptibilitetvarianser), fmt='o-')
 plt.xlabel("Temperatur")
 plt.ylabel("Susceptibilitet")
 plt.title("Susceptibilitet som funktion af temperatur")
 plt.savefig("output/Fourier/susceptibilitet.png")
 plt.close()
 # energi som funktion af temp
-plt.plot(temps, energier, 'o-')
+plt.errorbar(temps, energier, yerr=np.sqrt(varmekapaciteter), fmt='o-')
 plt.xlabel("Temperatur")
 plt.ylabel("Energi")
 plt.title("Energi som funktion af temperatur")
 plt.savefig("output/Fourier/Energi.png")
 plt.close()
 # varmekapacitet som funktion af temp
-plt.plot(temps, varmekapaciteter, 'o-')
+plt.errorbar(temps, varmekapaciteter, yerr=np.sqrt(varmevarianser), fmt='o-')
 plt.xlabel("Temperatur")
 plt.ylabel("Varmekapacitet")
 plt.title("Varmekapacitet som funktion af temperatur")
@@ -109,7 +113,7 @@ plt.savefig("output/Fourier/Varmekapacitet.png")
 plt.close()
 # korrelationslængde som funktion af temp
 
-plt.plot(temps, 1/np.array(gammas), 'o-')
+plt.errorbar(temps, 1/np.array(gammas), yerr=1/np.array(gammaUsikkerheder), fmt='o-') #usikkerheder skal måske bare være usikkerheden på gamma fra python fit?
 plt.xlabel("Temperatur")
 plt.ylabel("Korrelationslængde (gamma)")
 plt.title("Korrelationslængde som funktion af temperatur")

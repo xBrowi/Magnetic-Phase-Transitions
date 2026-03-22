@@ -21,15 +21,15 @@ int main()
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 1; T <= 3.51; T += 0.5)
+    for (double T = 2; T <= 2.51; T += 0.05)
     {
         MCParameters params;
         params.latticeType = LatticeType::FunkySquare;
-        params.size = 32;
+        params.size = 128;
         params.temperature = T;
         params.B = 0.0;
-        params.totalStepCount = 2e7;
-        params.measurementInterval = 1e5;
+        params.totalStepCount = 2e8;
+        params.measurementInterval = 1e6;
         params.randomize = false;
         params.printProgress = false;
         params.stabilizing = 0.2;
@@ -53,8 +53,10 @@ int main()
         measurementsFile << allMeasurements[i].count << ",";
         measurementsFile << allMeasurements[i].magnetisering << ",";
         measurementsFile << allMeasurements[i].magnetiseringVarians << ",";
+        measurementsFile << allMeasurements[i].magnetiseringVariansVarians << ",";
         measurementsFile << allMeasurements[i].hamilton << ",";
         measurementsFile << allMeasurements[i].hamiltonVarians << ",";
+        measurementsFile << allMeasurements[i].hamiltonVariansVarians << ",";
         measurementsFile << "\n";
 
         for (const double &m : allMeasurements[i].normKvadrat)
