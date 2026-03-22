@@ -156,6 +156,9 @@ std::vector<Measurement> runMCSimulation(const MCParameters &params)
     case LatticeType::OneD:
         lattice = new FreeLattice1D(params.size, params.B);
         break;
+    case LatticeType::Triangle:
+        lattice = new TriangleLattice2D(params.size, params.B);
+        break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
         return measurements;
@@ -241,6 +244,9 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
     //     break;
     case LatticeType::OneD:
         lattice = new FreeLattice1D(params.size, params.B);
+        break;
+    case LatticeType::Triangle:
+        lattice = new TriangleLattice2D(params.size, params.B);
         break;
     default:
         std::cerr << "Unsupported lattice type!" << std::endl;
