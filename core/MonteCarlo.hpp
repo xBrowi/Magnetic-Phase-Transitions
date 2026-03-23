@@ -303,24 +303,24 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
     output.count = measurements.counter;
 
     output.magnetisering = measurements.magnetiseringSum / measurements.counter;
-    output.magnetiseringVarians = ((measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter)) * (float(measurements.counter) / (float(measurements.counter) - 1)); // Varians af magnetisering, normaliseret
+    output.magnetiseringVarians = ((measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter)) * (double(measurements.counter) / (double(measurements.counter) - 1)); // Varians af magnetisering, normaliseret
 
     output.hamilton = measurements.hamiltonSum / measurements.counter;
-    output.hamiltonVarians = ((measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter)) * (float(measurements.counter) / (float(measurements.counter) - 1)); // Varians af hamilton, normaliseret
+    output.hamiltonVarians = ((measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter)) * (double(measurements.counter) / (double(measurements.counter) - 1)); // Varians af hamilton, normaliseret
 
     
-    float magnetiseringMu4 = (measurements.magnetiseringKvadratKvadratSum / measurements.counter) 
+    long double magnetiseringMu4 = (measurements.magnetiseringKvadratKvadratSum / measurements.counter) 
                 - 4 * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringKubeSum / measurements.counter)
                 + 6 * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringKvadratSum / measurements.counter)
                 - 3 * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter);
     
-    float hamiltonMu4 = (measurements.hamiltonKvadratKvadratSum / measurements.counter) 
+    long double hamiltonMu4 = (measurements.hamiltonKvadratKvadratSum / measurements.counter) 
                 - 4 * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonKubeSum / measurements.counter)
                 + 6 * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonKvadratSum / measurements.counter)
                 - 3 * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter);
 
-    output.magnetiseringVariansVarians = (magnetiseringMu4 - (float(measurements.counter) - 3)/ (float(measurements.counter) - 1) * output.magnetiseringVarians * output.magnetiseringVarians);
-    output.hamiltonVariansVarians = (hamiltonMu4 - (float(measurements.counter) - 3)/ (float(measurements.counter) - 1) * output.hamiltonVarians * output.hamiltonVarians);
+    output.magnetiseringVariansVarians = (magnetiseringMu4 - (double(measurements.counter) - 3)/ (double(measurements.counter) - 1) * output.magnetiseringVarians * output.magnetiseringVarians);
+    output.hamiltonVariansVarians = (hamiltonMu4 - (double(measurements.counter) - 3)/ (double(measurements.counter) - 1) * output.hamiltonVarians * output.hamiltonVarians);
 
     std::cout << "summer over magnetisering, varians og variansvarians, " << measurements.magnetiseringSum << ", " << measurements.magnetiseringKvadratSum << ", " << measurements.magnetiseringKvadratKvadratSum << "\n"; 
     std::cout << "summer over hamilton, varians og variansvarians, " << measurements.hamiltonSum << ", " << measurements.hamiltonKvadratSum << ", " << measurements.hamiltonKvadratKvadratSum << "\n";

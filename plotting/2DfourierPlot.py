@@ -97,17 +97,26 @@ for j in range(0,antalStørrelser):
     for i in range(simCount):  # Adjust the range as needed
         X = np.arange(-sizes[i]//2, sizes[i]//2)
         X = np.delete(X, len(X)//2)  # Fjern det midterste punkt for at undgå singularitet i cauchy fit
+
+        if (sizes[i]%2 == 1):
+            X += 1 # Juster X for at sikre korrekt placering af punkterne efter fjernelse af midterste punkt
+
+        X *= 2*np.pi/sizes[i]  # Skaler X for at få korrekte k-værdier
+        
+
         p0 = [max(kvadratFFT1Ds[i]), 10, min(kvadratFFT1Ds[i])]  # Initiale gæt for A, gamma og k
-        par, cov = curve_fit(cauchy_offset, X, kvadratFFT1Ds[i], p0=p0, maxfev=50000)
+        par, cov = curve_fit(cauchy_offset, X, kvadratFFT1Ds[i], p0=p0, maxfev=50000, bounds=([0, 0, -np.inf], [np.inf, np.inf, np.inf]))  # Tilføj bounds for at sikre positive A og gamma
         gammaUsikkerheder.append(np.sqrt(cov[1][1]))
         gammas.append(par[1])
         As.append(par[0])
 
 
         X_plot = np.linspace(-sizes[i]//2, sizes[i]//2, 1000)
+        X_plot *= 2*np.pi/sizes[i]  # Skaler X_plot for at få korrekte k-værdier
 
-        plt.errorbar(X, kvadratFFT1Ds[i], yerr=kvadratFFT1Dusikkerheder[i], fmt='.', label=f"Data Temp {temps[i]}")
-        plt.plot(X_plot, cauchy_offset(X_plot, *par), label=f"Cauchy Fit Temp {temps[i]}")
+        if(i == 4):
+            plt.errorbar(X, kvadratFFT1Ds[i], yerr=kvadratFFT1Dusikkerheder[i], fmt='.', label=f"Data Temp {temps[i]}")
+            plt.plot(X_plot, cauchy_offset(X_plot, *par), label=f"Cauchy Fit Temp {temps[i]}")
 
         #plot startgæt
         #plt.plot(X, cauchy_offset(X, *p0), label=f"Startgæt Temp {temps[i]}")
@@ -119,6 +128,7 @@ for j in range(0,antalStørrelser):
     plt.ylabel(r"$|\tilde{m}(k_x, k_y=0)|^2$")
     plt.title("1D Fourier som funktion af tid")
     plt.legend()
+    #plt.ylim(0, np.max(kvadratFFT1Ds)*1.1)  # Juster y-aksen baseret på data
     plt.savefig(f"plots/Fourier/{j}_1D_Fouriers.png",dpi =600)
     plt.close()
 
@@ -164,9 +174,13 @@ for j in range(0,antalStørrelser):
     #print("As:", As)
     #print("Gammas:", gammas)
     #print("Gamma Usikkerheder:", gammaUsikkerheder)
-    plt.errorbar(temps, np.array(gammas), yerr=np.array(gammaUsikkerheder), fmt='o-') #usikkerheder skal måske bare være usikkerheden på gamma fra python fit?
+    korrlængder = 1/np.array(gammas)
+    korrUsikkerhed = np.array(gammaUsikkerheder) / np.array(gammas)**2  # Usikkerhed på 1/gamma
+
+    plt.errorbar(temps, np.array(korrlængder), yerr=np.array(korrUsikkerhed), fmt='o-') #usikkerheder skal måske bare være usikkerheden på korrelationslængde fra python fit?
     plt.xlabel("Temperatur")
-    plt.ylabel("Korrelationslængde (gamma)")
+    plt.ylabel("Korrelationslængde (1/gamma)")
+    plt.ylim(0, np.max(korrlængder)*1.1)  # Juster y-aksen baseret på data
     plt.title("Korrelationslængde som funktion af temperatur")
     plt.savefig(f"plots/Fourier/{j}_Korrelationslaengde.png")
     plt.close()

@@ -21,7 +21,7 @@ int main()
 
     //på 6 timer har vi 2.16e13 steps
     std::vector<int> størrelser = {200, 180, 166, 154, 142, 134, 125, 118, 110, 105, 100}; // Adjust as needed
-    std::vector<double> temperaturer = {1, 2.5, 3, 3.2, 3.3, 3.4, 3.4, 3.55, 3.6, 3.62, 3.64, 3.66, 3.67, 3.69, 3.72, 3.75, 3.8, 3.95, 4.5, 6.5}; // Adjust as needed
+    std::vector<double> temperaturer = {1, 2.5, 3, 3.2, 3.3, 3.4, 3.55, 3.6, 3.62, 3.64, 3.66, 3.67, 3.69, 3.72, 3.75, 3.8, 3.95, 4.5, 6.5}; // Adjust as needed
     //std::vector<int> størrelser = {50, 40, 32}; // Adjust as needed
 
     int totalSimulations = størrelser.size() * temperaturer.size();
