@@ -4,6 +4,8 @@
 
 # data files
 *.csv
+*.tar
+*.tar.gz
 
 
 # Prerequisites
