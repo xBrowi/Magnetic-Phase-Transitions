@@ -13,70 +13,99 @@ int main()
     // time the simulation
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    std::ofstream parameterFile("output/Fourier/parameters.csv");
-    std::ofstream measurementsFile("output/Fourier/measurements.csv");
-    std::ofstream FFTFile("output/Fourier/kvadratFFT.csv");
-    std::ofstream FFTVarFile("output/Fourier/kvadratFFTvariance.csv");
+    // std::ofstream parameterFile("output/Fourier/parameters.csv");
+    //std::ofstream measurementsFile("output/Fourier/measurements.csv");
+    //std::ofstream FFTFile("output/Fourier/kvadratFFT.csv");
+    //std::ofstream FFTVarFile("output/Fourier/kvadratFFTvariance.csv");
 
+
+    //på 6 timer har vi 2.16e13 steps
+    std::vector<int> størrelser = {200, 180, 166, 154, 142, 134, 125, 118, 110, 105, 100}; // Adjust as needed
+    std::vector<double> temperaturer = {1.0, 1.5, 1.75, 2.0,         2.1, 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.2, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.31, 2.32, 2.33, 2.34, 2.35, 2.36, 2.37, 2.38, 2.39, 2.4,      2.5, 2.75, 3.0, 3.5}; // Adjust as needed
+    //std::vector<int> størrelser = {50, 40, 32}; // Adjust as needed
+
+    std::vector<std::ofstream> parameterFiles(størrelser.size()); // 4 filer per størrelse
+    std::vector<std::ofstream> measurementsFiles(størrelser.size());
+    std::vector<std::ofstream> FFTFiles(størrelser.size());
+    std::vector<std::ofstream> FFTVarFiles(størrelser.size());
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 2; T <= 2.51; T += 0.05)
-    {
-        MCParameters params;
-        params.latticeType = LatticeType::FunkySquare;
-        params.size = 128;
-        params.temperature = T;
-        params.B = 0.0;
-        params.totalStepCount = 2e8;
-        params.measurementInterval = 1e6;
-        params.randomize = false;
-        params.printProgress = false;
-        params.stabilizing = 0.2;
-        stepType stepAlgorithm = stepType::Metropolis;
-        int wolffStabilizationSteps = 5; // sæt til 0 for ingen Wolff stabilisering
+    for (int i = 0; i < størrelser.size(); ++i) {
+        parameterFiles[i] = std::ofstream("output/Fourier/parameters/parameters_" + std::to_string(størrelser[i]) + ".csv");
+        measurementsFiles[i] = std::ofstream("output/Fourier/measurements/measurements_" + std::to_string(størrelser[i]) + ".csv");
+        FFTFiles[i] = std::ofstream("output/Fourier/kvadratFFT/kvadratFFT_" + std::to_string(størrelser[i]) + ".csv");
+        FFTVarFiles[i] = std::ofstream("output/Fourier/kvadratFFTvariance/kvadratFFTvariance_" + std::to_string(størrelser[i]) + ".csv");
 
-        paramsList.push_back(params);
+        for (double T : temperaturer)
+        {
+            MCParameters params;
+            params.latticeType = LatticeType::FunkySquare;
+            params.size = størrelser[i];
+            params.temperature = T;
+            params.B = 0.0;
+            params.totalStepCount = 5e10;     //5e10
+            params.measurementInterval = 5e6; //5e6
+            params.randomize = true;
+            params.printProgress = false;
+            params.stabilizing = 0.1;
+            params.stepAlgorithm = stepType::Metropolis;
+            params.wolffStabilizationSteps = 1; //3 // sæt til 0 for ingen Wolff stabilisering
+
+            paramsList.push_back(params);
+        }
     }
-
     std::vector<MCFourierResult> allMeasurements = runParallelFourierMCSimulation(paramsList);
+    
+    for (size_t j = 0; j < størrelser.size(); ++j)
+        for (size_t i = temperaturer.size() * j; i < temperaturer.size() * (j+1); ++i)
+        {   
+            std::ofstream &parameterFile = parameterFiles[j];
+            std::ofstream &measurementsFile = measurementsFiles[j];
+            std::ofstream &FFTFile = FFTFiles[j];
+            std::ofstream &FFTVarFile = FFTVarFiles[j];
 
-    for (size_t i = 0; i < paramsList.size(); ++i)
-    {   
-        parameterFile << paramsList[i].size << ",";
-        parameterFile << paramsList[i].temperature << ",";
-        parameterFile << paramsList[i].B << ",";
-        parameterFile << paramsList[i].totalStepCount << ",";
-        parameterFile << paramsList[i].measurementInterval<< ",";
-        parameterFile << "\n";
+            parameterFile << paramsList[i].size << ",";
+            parameterFile << paramsList[i].temperature << ",";
+            parameterFile << paramsList[i].B << ",";
+            parameterFile << paramsList[i].totalStepCount << ",";
+            parameterFile << paramsList[i].measurementInterval<< ",";
+            parameterFile << "\n";
 
-        measurementsFile << allMeasurements[i].count << ",";
-        measurementsFile << allMeasurements[i].magnetisering << ",";
-        measurementsFile << allMeasurements[i].magnetiseringVarians << ",";
-        measurementsFile << allMeasurements[i].magnetiseringVariansVarians << ",";
-        measurementsFile << allMeasurements[i].hamilton << ",";
-        measurementsFile << allMeasurements[i].hamiltonVarians << ",";
-        measurementsFile << allMeasurements[i].hamiltonVariansVarians << ",";
-        measurementsFile << "\n";
+            measurementsFile << allMeasurements[i].count << ",";
+            measurementsFile << allMeasurements[i].magnetisering << ",";
+            measurementsFile << allMeasurements[i].magnetiseringVarians << ",";
+            measurementsFile << allMeasurements[i].magnetiseringVariansVarians << ",";
+            measurementsFile << allMeasurements[i].hamilton << ",";
+            measurementsFile << allMeasurements[i].hamiltonVarians << ",";
+            measurementsFile << allMeasurements[i].hamiltonVariansVarians << ",";
+            measurementsFile << "\n";
 
-        for (const double &m : allMeasurements[i].normKvadrat)
-        {
-            FFTFile << m << ",";
+            for (const double &m : allMeasurements[i].normKvadrat)
+            {
+                FFTFile << m << ",";
+            }
+            FFTFile << "\n";
+
+            for (const double &m : allMeasurements[i].normKvadratVarians)
+            {
+                FFTVarFile << m << ",";
+            }
+            FFTVarFile << "\n";
+
         }
-        FFTFile << "\n";
 
-        for (const double &m : allMeasurements[i].normKvadratVarians)
-        {
-            FFTVarFile << m << ",";
-        }
-        FFTVarFile << "\n";
-
+    //parameterFile.close();
+    //measurementsFile.close();
+    //FFTFile.close();
+    //FFTVarFile.close();
+    for (size_t i = 0; i < parameterFiles.size(); ++i)
+    {
+        parameterFiles[i].close();
+        measurementsFiles[i].close();
+        FFTFiles[i].close();
+        FFTVarFiles[i].close();
     }
-
-    parameterFile.close();
-    measurementsFile.close();
-    FFTFile.close();
-    FFTVarFile.close();
 
     auto endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = endTime - startTime;

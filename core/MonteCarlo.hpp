@@ -13,6 +13,7 @@
 #include <thread>
 #include <mutex>
 #include <memory>
+#include <deque>
 #include <fftw3.h> //Fourierificering, comment ud indtil i installerer library
 
 enum stepType
@@ -96,7 +97,7 @@ void MCStepWolff(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_rea
             if (!visited[neighborIndex] && lattice.getSpin(neighborIndex) == originalSpin)
             {
                 double J = interaction.J;
-                double P_add = 1 - std::exp(-2 * J / T);
+                double P_add = 1 - std::exp(-2 * J / T); //magic formula
 
                 if (distReal(rng) < P_add)
                 {
@@ -117,14 +118,17 @@ void MCStepWolff(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_rea
 
 void MCStep(Lattice &lattice, double T, std::mt19937 &rng, std::uniform_real_distribution<double> &distReal, stepType algorithm)
 {
-    // Wolff eller Metropolis, implementer begge senere
     if (algorithm == stepType::Wolff)
     {
         MCStepWolff(lattice, T, rng, distReal);
     }
-    else
+    else if (algorithm == stepType::Metropolis)
     {
         MCStepMetropolis(lattice, T, rng, distReal);
+    }
+    else
+    {
+        std::cerr << "Unsupported step algorithm!" << std::endl;
     }
 }
 
@@ -282,6 +286,7 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
 
     {
         std::lock_guard<std::mutex> lock(mcPrintMutex());
+        std::cout << "\n";
         std::cout << "Simulation complete for T = " << params.temperature << ", B = " << params.B << ", size = " << params.size << "\n";
     }
 
@@ -295,15 +300,27 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
         ); // Varians af normKvadrat, normaliseret
     }
 
+    output.count = measurements.counter;
+
     output.magnetisering = measurements.magnetiseringSum / measurements.counter;
-    output.magnetiseringVarians = (measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter); // Varians af magnetisering, normaliseret
-    output.magnetiseringVariansVarians = (measurements.magnetiseringKvadratKvadratSum / measurements.counter) - (measurements.magnetiseringKvadratSum / measurements.counter) * (measurements.magnetiseringKvadratSum / measurements.counter); // Varians af variansen af magnetiseringen, normaliseret
+    output.magnetiseringVarians = ((measurements.magnetiseringKvadratSum / measurements.counter) - (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter)) * (float(measurements.counter) / (float(measurements.counter) - 1)); // Varians af magnetisering, normaliseret
 
     output.hamilton = measurements.hamiltonSum / measurements.counter;
-    output.hamiltonVarians = (measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter); // Varians af hamilton, normaliseret
-    output.hamiltonVariansVarians = (measurements.hamiltonKvadratKvadratSum / measurements.counter) - (measurements.hamiltonKvadratSum / measurements.counter) * (measurements.hamiltonKvadratSum / measurements.counter); // Varians af variansen af hamilton, normaliseret
+    output.hamiltonVarians = ((measurements.hamiltonKvadratSum / measurements.counter) - (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter)) * (float(measurements.counter) / (float(measurements.counter) - 1)); // Varians af hamilton, normaliseret
 
-    output.count = measurements.counter;
+    
+    float magnetiseringMu4 = (measurements.magnetiseringKvadratKvadratSum / measurements.counter) 
+                - 4 * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringKubeSum / measurements.counter)
+                + 6 * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringKvadratSum / measurements.counter)
+                - 3 * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter) * (measurements.magnetiseringSum / measurements.counter);
+    
+    float hamiltonMu4 = (measurements.hamiltonKvadratKvadratSum / measurements.counter) 
+                - 4 * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonKubeSum / measurements.counter)
+                + 6 * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonKvadratSum / measurements.counter)
+                - 3 * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter) * (measurements.hamiltonSum / measurements.counter);
+
+    output.magnetiseringVariansVarians = (magnetiseringMu4 - (float(measurements.counter) - 3)/ (float(measurements.counter) - 1) * output.magnetiseringVarians * output.magnetiseringVarians);
+    output.hamiltonVariansVarians = (hamiltonMu4 - (float(measurements.counter) - 3)/ (float(measurements.counter) - 1) * output.hamiltonVarians * output.hamiltonVarians);
 
     std::cout << "summer over magnetisering, varians og variansvarians, " << measurements.magnetiseringSum << ", " << measurements.magnetiseringKvadratSum << ", " << measurements.magnetiseringKvadratKvadratSum << "\n"; 
     std::cout << "summer over hamilton, varians og variansvarians, " << measurements.hamiltonSum << ", " << measurements.hamiltonKvadratSum << ", " << measurements.hamiltonKvadratKvadratSum << "\n";
@@ -323,23 +340,21 @@ std::vector<MCFourierResult> runParallelFourierMCSimulation(std::vector<MCParame
 {
     std::vector<MCFourierResult> allMeasurements(paramsList.size());
 
-    std::vector<std::thread> threads;
+    std::deque<std::thread> threads;
     unsigned int hw = std::thread::hardware_concurrency();
     size_t maxThreads = (hw == 0) ? 4 : static_cast<size_t>(hw);
 
     for (size_t i = 0; i < paramsList.size(); ++i)
     {
+        if (threads.size() >= maxThreads)
+        {
+            threads.front().join();
+            threads.pop_front();
+        }
+
         paramsList[i].printProgress = false; // Disable progress printing for parallel runs
         threads.emplace_back(writeFourierMCResultsToArray, std::ref(allMeasurements), std::cref(paramsList[i]), i);
 
-        if (threads.size() >= maxThreads)
-        {
-            for (auto &thread : threads)
-            {
-                thread.join();
-            }
-            threads.clear();
-        }
     }
 
     for (auto &thread : threads)

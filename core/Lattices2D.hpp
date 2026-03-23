@@ -187,10 +187,17 @@ public:
                 }
             }
         }
+        hamiltoncontributions /= (float(N) * float(N)); // normaliser Hamiltonian, så den ikke vokser med systemstørrelsen
+
+
         measurementTracker.hamiltonSum += hamiltoncontributions;
         measurementTracker.hamiltonKvadratSum += hamiltoncontributions * hamiltoncontributions;
+        measurementTracker.hamiltonKubeSum += hamiltoncontributions * hamiltoncontributions * hamiltoncontributions;
         measurementTracker.hamiltonKvadratKvadratSum += hamiltoncontributions * hamiltoncontributions * hamiltoncontributions * hamiltoncontributions;
         
+        //til debugging/korrelation
+        //std::cout << hamiltoncontributions << ", "; // SLET MIG
+
         //kør magien
         fftw_execute(p);
         //output Fourier transformen til trackeren (skrevet med god gammel python syntax)
@@ -199,20 +206,15 @@ public:
 
         for (int i = 0; i < N * N; i++) {
             measurementTracker.normKvadratSum[i] += normKvadrat[i];
-            measurementTracker.normKvadratKvadratSum[i] += normKvadrat[i] * normKvadrat[i];
+            measurementTracker.normKvadratKvadratSum[i] += (normKvadrat[i] * normKvadrat[i]);
         }
 
-        measurementTracker.magnetiseringSum += std::sqrt(normKvadrat[0]) / (N * N); // magnetisering er norm af k=0 komponenten, normaliseret
-        measurementTracker.magnetiseringKvadratSum += (normKvadrat[0]) / (N * N * N * N); // kvadratet af magnetiseringen
-        measurementTracker.magnetiseringKvadratKvadratSum += (normKvadrat[0] * normKvadrat[0]) / (float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N)); // kvadratet af variansen af magnetiseringen, normaliseret
-        
-
-
-
-
-
-
+        measurementTracker.magnetiseringSum += (std::sqrt(normKvadrat[0]) / (float(N) * float(N))); // magnetisering er norm af k=0 komponenten, normaliseret
+        measurementTracker.magnetiseringKvadratSum += (normKvadrat[0] / (float(N) * float(N) * float(N) * float(N))); // kvadratet af magnetiseringen
+        measurementTracker.magnetiseringKubeSum += ((normKvadrat[0] * std::sqrt(normKvadrat[0])) / (float(N) * float(N) * float(N) * float(N) * float(N) * float(N))); // kuben af magnetiseringen, normaliseret
+        measurementTracker.magnetiseringKvadratKvadratSum += ((normKvadrat[0] * normKvadrat[0]) / (float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N))); // kvadratet af variansen af magnetiseringen, normaliseret 
     }
+    
 };
 
 // square structure with normal periodic boundary conditions

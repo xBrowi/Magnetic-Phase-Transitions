@@ -40,9 +40,11 @@ struct TrackMeasurements
     //til susceptibilit og specifik varme
     double magnetiseringSum;
     double magnetiseringKvadratSum;
+    double magnetiseringKubeSum;
     double magnetiseringKvadratKvadratSum;
     double hamiltonSum;
     double hamiltonKvadratSum;
+    double hamiltonKubeSum;
     double hamiltonKvadratKvadratSum;
 };
 
@@ -189,7 +191,6 @@ public:
         return cluster_sizes;
     }
     
-
     double meanClusterSize()
     {
         std::vector<int> sizes = ClusterSizes();
