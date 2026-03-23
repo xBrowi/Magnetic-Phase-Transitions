@@ -21,8 +21,11 @@ int main()
 
     //på 6 timer har vi 2.16e13 steps
     std::vector<int> størrelser = {200, 180, 166, 154, 142, 134, 125, 118, 110, 105, 100}; // Adjust as needed
-    std::vector<double> temperaturer = {1.0, 1.5, 1.75, 2.0,         2.1, 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.2, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.31, 2.32, 2.33, 2.34, 2.35, 2.36, 2.37, 2.38, 2.39, 2.4,      2.5, 2.75, 3.0, 3.5}; // Adjust as needed
+    std::vector<double> temperaturer = {1, 2.5, 3, 3.2, 3.3, 3.4, 3.4, 3.55, 3.6, 3.62, 3.64, 3.66, 3.67, 3.69, 3.72, 3.75, 3.8, 3.95, 4.5, 6.5}; // Adjust as needed
     //std::vector<int> størrelser = {50, 40, 32}; // Adjust as needed
+
+    int totalSimulations = størrelser.size() * temperaturer.size();
+    std::cout << "Running " << totalSimulations << " simulations...\n";
 
     std::vector<std::ofstream> parameterFiles(størrelser.size()); // 4 filer per størrelse
     std::vector<std::ofstream> measurementsFiles(størrelser.size());
@@ -40,7 +43,7 @@ int main()
         for (double T : temperaturer)
         {
             MCParameters params;
-            params.latticeType = LatticeType::FunkySquare;
+            params.latticeType = LatticeType::Triangle;
             params.size = størrelser[i];
             params.temperature = T;
             params.B = 0.0;

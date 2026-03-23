@@ -342,7 +342,7 @@ public:
     std::vector<interaction2D> getInteractions2D(Point2D p) override
     {
         std::vector<interaction2D> interactions;
-        double J = -1; // Interaction strength in units of k_B (J/k_B)
+        double J = 1; // Interaction strength in units of k_B (J/k_B) // set J=-1 for antiferromagnetic interactions
 
         if (p.x % 2 == 1) //lige rækker er rykket ind mod højre ift. square
         {
@@ -407,7 +407,7 @@ public:
             getSpin(n3) +
             getSpin(n4);
 
-        const double J = -1.0;
+        const double J = 1.0; // set J=-1 for antiferromagnetic interactions
         return 2.0 * getSpin(p) * (B + J * neighborSum);
     }
 
