@@ -20,10 +20,10 @@ int main()
 
 
     //på 6 timer har vi 2.16e13 steps
-    std::vector<int> størrelser = {200, 180, 166, 154, 142, 134, 125, 118, 110, 105, 100}; // Adjust as needed
-    std::vector<double> temperaturer = {1, 2.5, 3, 3.2, 3.3, 3.4, 3.55, 3.6, 3.62, 3.64, 3.66, 3.67, 3.69, 3.72, 3.75, 3.8, 3.95, 4.5, 6.5}; // Adjust as needed
+    std::vector<int> størrelser = {24,26,28,30,32,34,36,38,42,44,46,50,52,56,58,62,66,72,78,84,90}; // Adjust as needed
+    std::vector<double> temperaturer = {1.0, 1.5, 1.75, 2.0, 2.1, 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.30, 2.31, 2.32, 2.33, 2.34, 2.35, 2.36, 2.37, 2.38, 2.39, 2.4, 2.5, 2.75, 3, 3.5};
     //std::vector<int> størrelser = {50, 40, 32}; // Adjust as needed
-
+    
     int totalSimulations = størrelser.size() * temperaturer.size();
     std::cout << "Running " << totalSimulations << " simulations...\n";
 
@@ -43,12 +43,12 @@ int main()
         for (double T : temperaturer)
         {
             MCParameters params;
-            params.latticeType = LatticeType::Triangle;
+            params.latticeType = LatticeType::FunkySquare;
             params.size = størrelser[i];
             params.temperature = T;
             params.B = 0.0;
-            params.totalStepCount = 5e10;     //5e10
-            params.measurementInterval = 5e6; //5e6
+            params.totalStepCount = 1.25e10;     //5e10
+            params.measurementInterval = 1.25e6; //5e6
             params.randomize = true;
             params.printProgress = false;
             params.stabilizing = 0.1;
@@ -56,7 +56,7 @@ int main()
             params.wolffStabilizationSteps = 1; //3 // sæt til 0 for ingen Wolff stabilisering
 
             paramsList.push_back(params);
-        }
+        } 
     }
     std::vector<MCFourierResult> allMeasurements = runParallelFourierMCSimulation(paramsList);
     
