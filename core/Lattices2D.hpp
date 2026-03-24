@@ -200,7 +200,7 @@ public:
 
         //kør magien
         fftw_execute(p);
-        //output Fourier transformen til trackeren (skrevet med god gammel python syntax)
+        //output Fourier transformen til trackeren
 
         std::vector<double> normKvadrat = FourierNormKvadrat(out);
 
