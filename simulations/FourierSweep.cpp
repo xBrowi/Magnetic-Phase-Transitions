@@ -20,8 +20,9 @@ int main()
 
 
     //på 6 timer har vi 2.16e13 steps
-    std::vector<int> størrelser = {24, 26, 28, 30, 32, 34, 36, 38, 42, 44, 46, 50, 52, 56, 58, 62, 66, 72, 78, 84, 90, 100, 105, 110, 118, 125, 134, 142, 154, 166, 180, 200}; // Adjust as needed
-    std::vector<double> temperaturer = {2.280, 2.279, 2.278, 2.277, 2.276, 2.275, 2.274, 2.273, 2.272, 2.271, 2.27, 2.269, 2.268, 2.267, 2.266, 2.265, 2.264, 2.263, 2.262, 2.261, 2.26};
+    std::vector<int> størrelser = {64}; // Adjust as needed
+    std::vector<double> magnetiseringer = {-1.5, -1.3, -1.1, -0.9, -0.7, -0.5, -0.3, -0.1, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5}; // Adjust as needed
+    std::vector<double> temperaturer = {1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9}; // Adjust as needed
     //std::vector<int> størrelser = {50, 40, 32}; // Adjust as needed
     
     int totalSimulations = størrelser.size() * temperaturer.size();
@@ -42,72 +43,80 @@ int main()
 
         for (double T : temperaturer)
         {
-            MCParameters params;
-            params.latticeType = LatticeType::FunkySquare;
-            params.size = størrelser[i];
-            params.temperature = T;
-            params.B = 0.0;
-            params.totalStepCount = 5e5;     //5e10
-            params.measurementInterval = 50; //5e6
-            params.randomize = true;
-            params.printProgress = false;
-            params.stabilizing = 0.1;
-            params.stepAlgorithm = stepType::Wolff;
-            params.wolffStabilizationSteps = 1; //3 // sæt til 0 for ingen Wolff stabilisering
+            for (double B : magnetiseringer)
+            {
+                MCParameters params;
+                params.latticeType = LatticeType::FunkySquare;
+                params.size = størrelser[i];
+                params.temperature = T;
+                params.B = B;
+                params.totalStepCount = 1e7;     //5e10
+                params.measurementInterval = 1e5; //5e6
+                params.randomize = true;
+                params.printProgress = false;
+                params.stabilizing = 0.1;
+                params.stepAlgorithm = stepType::Metropolis;
+                params.wolffStabilizationSteps = 1; //3 // sæt til 0 for ingen Wolff stabilisering
 
-            paramsList.push_back(params);
+                paramsList.push_back(params);
+            }
         } 
     }
     std::vector<MCFourierResult> allMeasurements = runParallelFourierMCSimulation(paramsList);
     
     for (size_t j = 0; j < størrelser.size(); ++j)
+    {
+        std::ofstream &parameterFile = parameterFiles[j];
+        std::ofstream &measurementsFile = measurementsFiles[j];
+        std::ofstream &FFTFile = FFTFiles[j];
+        std::ofstream &FFTVarFile = FFTVarFiles[j];
+
         for (size_t i = temperaturer.size() * j; i < temperaturer.size() * (j+1); ++i)
         {   
-            std::ofstream &parameterFile = parameterFiles[j];
-            std::ofstream &measurementsFile = measurementsFiles[j];
-            std::ofstream &FFTFile = FFTFiles[j];
-            std::ofstream &FFTVarFile = FFTVarFiles[j];
-
-            parameterFile << paramsList[i].size << ",";
-            parameterFile << paramsList[i].temperature << ",";
-            parameterFile << paramsList[i].B << ",";
-            parameterFile << paramsList[i].totalStepCount << ",";
-            parameterFile << paramsList[i].measurementInterval<< ",";
-            parameterFile << "\n";
-
-            measurementsFile << allMeasurements[i].count << ",";
-            measurementsFile << allMeasurements[i].magnetisering << ",";
-            measurementsFile << allMeasurements[i].magnetiseringVarians << ",";
-            measurementsFile << allMeasurements[i].magnetiseringVariansVarians << ",";
-            measurementsFile << allMeasurements[i].hamilton << ",";
-            measurementsFile << allMeasurements[i].hamiltonVarians << ",";
-            measurementsFile << allMeasurements[i].hamiltonVariansVarians << ",";
-            measurementsFile << "\n";
-
-            for (const double &m : allMeasurements[i].normKvadrat)
+            for (size_t k = 0; k < magnetiseringer.size(); ++k)
             {
-                FFTFile << m << ",";
-            }
-            FFTFile << "\n";
+                parameterFile << paramsList[i* magnetiseringer.size() + k].size << ",";
+                parameterFile << paramsList[i* magnetiseringer.size() + k].temperature << ",";
+                parameterFile << paramsList[i* magnetiseringer.size() + k].B << ",";
+                parameterFile << paramsList[i* magnetiseringer.size() + k].totalStepCount << ",";
+                parameterFile << paramsList[i* magnetiseringer.size() + k].measurementInterval<< ",";
+                parameterFile << "\n";
 
-            for (const double &m : allMeasurements[i].normKvadratVarians)
-            {
-                FFTVarFile << m << ",";
+                measurementsFile << allMeasurements[i* magnetiseringer.size() + k].count << ",";
+                measurementsFile << allMeasurements[i* magnetiseringer.size() + k].magnetisering << ",";
+                measurementsFile << allMeasurements[i* magnetiseringer.size() + k].magnetiseringVarians << ",";
+                measurementsFile << allMeasurements[i* magnetiseringer.size() + k].magnetiseringVariansVarians << ",";
+                measurementsFile << allMeasurements[i* magnetiseringer.size() + k].hamilton << ",";
+                measurementsFile << allMeasurements[i* magnetiseringer.size() + k].hamiltonVarians << ",";
+                measurementsFile << allMeasurements[i* magnetiseringer.size() + k].hamiltonVariansVarians << ",";
+                measurementsFile << "\n";
+
+                for (const double &m : allMeasurements[i* magnetiseringer.size() + k].normKvadrat)
+                {
+                    FFTFile << m << ",";
+                }
+                FFTFile << "\n";
+
+                for (const double &m : allMeasurements[i* magnetiseringer.size() + k].normKvadratVarians)
+                {
+                    FFTVarFile << m << ",";
+                }
+                FFTVarFile << "\n";
             }
-            FFTVarFile << "\n";
 
         }
 
-    //parameterFile.close();
-    //measurementsFile.close();
-    //FFTFile.close();
-    //FFTVarFile.close();
-    for (size_t i = 0; i < parameterFiles.size(); ++i)
-    {
-        parameterFiles[i].close();
-        measurementsFiles[i].close();
-        FFTFiles[i].close();
-        FFTVarFiles[i].close();
+        //parameterFile.close();
+        //measurementsFile.close();
+        //FFTFile.close();
+        //FFTVarFile.close();
+        for (size_t i = 0; i < parameterFiles.size(); ++i)
+        {
+            parameterFiles[i].close();
+            measurementsFiles[i].close();
+            FFTFiles[i].close();
+            FFTVarFiles[i].close();
+        }
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();
