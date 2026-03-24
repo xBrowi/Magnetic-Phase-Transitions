@@ -18,13 +18,13 @@ int main()
 
     params.latticeType = LatticeType::FunkySquare;
     params.size = 200;
-    params.temperature = 2.27;
+    params.temperature = 2.28;
     params.B = 0.0;
-    params.totalStepCount = 2e4;
-    params.measurementInterval = 1e1;
+    params.totalStepCount = 1e5;
+    params.measurementInterval = 50;
     params.randomize = true;
     params.printProgress = false;
-    params.stabilizing = 0.9;
+    params.stabilizing = 0.0;
     params.stepAlgorithm = stepType::Wolff;
     params.wolffStabilizationSteps = 0; // sæt til 0 for ingen Wolff stabilisering
 

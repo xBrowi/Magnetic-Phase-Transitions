@@ -280,7 +280,7 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
         if (i % (params.totalStepCount / 50) == 0)
         {
             std::lock_guard<std::mutex> lock(mcPrintMutex());
-            std::cout << "Progress: " << (100.0 * i / params.totalStepCount) << "%\n";
+            //std::cout << "Progress: " << (100.0 * i / params.totalStepCount) << "%\n";
         }
     }
 
@@ -322,9 +322,11 @@ MCFourierResult runFourierMCSimulation(const MCParameters &params)
     output.magnetiseringVariansVarians = (magnetiseringMu4 - (double(measurements.counter) - 3)/ (double(measurements.counter) - 1) * output.magnetiseringVarians * output.magnetiseringVarians);
     output.hamiltonVariansVarians = (hamiltonMu4 - (double(measurements.counter) - 3)/ (double(measurements.counter) - 1) * output.hamiltonVarians * output.hamiltonVarians);
 
-    std::cout << "summer over magnetisering, varians og variansvarians, " << measurements.magnetiseringSum << ", " << measurements.magnetiseringKvadratSum << ", " << measurements.magnetiseringKvadratKvadratSum << "\n"; 
-    std::cout << "summer over hamilton, varians og variansvarians, " << measurements.hamiltonSum << ", " << measurements.hamiltonKvadratSum << ", " << measurements.hamiltonKvadratKvadratSum << "\n";
-
+    {
+        std::lock_guard<std::mutex> lock(mcPrintMutex());
+        std::cout << "summer over magnetisering, varians og variansvarians, " << measurements.magnetiseringSum << ", " << measurements.magnetiseringKvadratSum << ", " << measurements.magnetiseringKvadratKvadratSum << "\n"; 
+        std::cout << "summer over hamilton, varians og variansvarians, " << measurements.hamiltonSum << ", " << measurements.hamiltonKvadratSum << ", " << measurements.hamiltonKvadratKvadratSum << "\n";
+    }
     // FIX DET ER SKRAMMEL DET VIRKER IK!!!!!!!!!
 
     lattice->freeFourier();
@@ -349,7 +351,13 @@ std::vector<MCFourierResult> runParallelFourierMCSimulation(std::vector<MCParame
         if (threads.size() >= maxThreads)
         {
             threads.front().join();
+            
             threads.pop_front();
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(mcPrintMutex());
+            std::cout << "\nStarting simulation " << i + 1 << " of " << paramsList.size() << " on thread " << threads.size() + 1 << "/" << maxThreads << "\n";
         }
 
         paramsList[i].printProgress = false; // Disable progress printing for parallel runs

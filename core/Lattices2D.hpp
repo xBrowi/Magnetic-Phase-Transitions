@@ -187,7 +187,7 @@ public:
                 }
             }
         }
-        hamiltoncontributions /= (float(N) * float(N)); // normaliser Hamiltonian, så den ikke vokser med systemstørrelsen
+        hamiltoncontributions /= (double(N) * double(N)); // normaliser Hamiltonian, så den ikke vokser med systemstørrelsen
 
 
         measurementTracker.hamiltonSum += hamiltoncontributions;
@@ -209,10 +209,10 @@ public:
             measurementTracker.normKvadratKvadratSum[i] += (normKvadrat[i] * normKvadrat[i]);
         }
 
-        measurementTracker.magnetiseringSum += (std::sqrt(normKvadrat[0]) / (float(N) * float(N))); // magnetisering er norm af k=0 komponenten, normaliseret
-        measurementTracker.magnetiseringKvadratSum += (normKvadrat[0] / (float(N) * float(N) * float(N) * float(N))); // kvadratet af magnetiseringen
-        measurementTracker.magnetiseringKubeSum += ((normKvadrat[0] * std::sqrt(normKvadrat[0])) / (float(N) * float(N) * float(N) * float(N) * float(N) * float(N))); // kuben af magnetiseringen, normaliseret
-        measurementTracker.magnetiseringKvadratKvadratSum += ((normKvadrat[0] * normKvadrat[0]) / (float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N) * float(N))); // kvadratet af variansen af magnetiseringen, normaliseret 
+        measurementTracker.magnetiseringSum += (std::sqrt(normKvadrat[0]) / (double(N) * double(N))); // magnetisering er norm af k=0 komponenten, normaliseret
+        measurementTracker.magnetiseringKvadratSum += (normKvadrat[0] / (double(N) * double(N) * double(N) * double(N))); // kvadratet af magnetiseringen
+        measurementTracker.magnetiseringKubeSum += ((normKvadrat[0] * std::sqrt(normKvadrat[0])) / (double(N) * double(N) * double(N) * double(N) * double(N) * double(N))); // kuben af magnetiseringen, normaliseret
+        measurementTracker.magnetiseringKvadratKvadratSum += ((normKvadrat[0] * normKvadrat[0]) / (double(N) * double(N) * double(N) * double(N) * double(N) * double(N) * double(N) * double(N))); // kvadratet af variansen af magnetiseringen, normaliseret 
     }
     
 };
@@ -407,7 +407,7 @@ public:
             getSpin(n3) +
             getSpin(n4);
 
-        const double J = 1.0; // set J=-1 for antiferromagnetic interactions
+        const double J = -1.0; // set J=-1 for antiferromagnetic interactions
         return 2.0 * getSpin(p) * (B + J * neighborSum);
     }
 
