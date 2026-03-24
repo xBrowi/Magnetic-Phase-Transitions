@@ -21,14 +21,14 @@ int main()
 
     std::vector<MCParameters> paramsList;
 
-    for (double T = 2.1; T <= 4.1; T += 0.4)
+    for (double T = 0.4; T <= 4.05; T += 0.1)
     {
         MCParameters params;
         params.latticeType = LatticeType::OneD;
-        params.size = 1024;
+        params.size = 2048;
         params.temperature = T;
         params.B = 0.0;
-        params.totalStepCount = 2e7;
+        params.totalStepCount = 1e8;
         params.measurementInterval = 1e5;
         params.randomize = false;
         params.printProgress = false;

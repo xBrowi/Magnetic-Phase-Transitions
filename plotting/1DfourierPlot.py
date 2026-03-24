@@ -19,8 +19,10 @@ temps = parameters[:,1]
 counts = measurements[:,0]
 magnetiseringer = measurements[:,1]
 susceptibiliteter = measurements[:,2]
-energier = measurements[:,3]
-varmekapaciteter = measurements[:,4]
+susceptibilitetvarianser = measurements[:,3]
+energier = measurements[:,4]
+varmekapaciteter = measurements[:,5]
+varmevarianser = measurements[:,6]
 
 #1D FFT
 for i in range(simCount):
@@ -74,28 +76,36 @@ plt.savefig("output/Fourier1D/1D_Fouriers.png",dpi =600)
 plt.close()
 
 # magnetisering som funktion af temp
-plt.plot(temps, magnetiseringer, 'o-')
+plt.errorbar(temps, magnetiseringer, yerr=np.sqrt(susceptibiliteter/counts), fmt='-')
 plt.xlabel("Temperatur")
 plt.ylabel("Magnetisering")
 plt.title("Magnetisering som funktion af temperatur")
 plt.savefig("output/Fourier1D/Magnetisering.png")
 plt.close()
 # susceptibilitet som funktion af temp 
-plt.plot(temps, susceptibiliteter, 'o-')
+plt.errorbar(temps, susceptibiliteter, yerr=np.sqrt(susceptibilitetvarianser/counts), fmt='-')
+def theoreticalSusceptibility(T):
+    return (1/4)*np.exp(2/T)/sizes[0]
+
+T_plot = np.linspace(0.35, 4, 100)
+plt.plot(T_plot, theoreticalSusceptibility(T_plot), label="Teoretisk Susceptibilitet", color='orange')
+
+
 plt.xlabel("Temperatur")
 plt.ylabel("Susceptibilitet")
 plt.title("Susceptibilitet som funktion af temperatur")
 plt.savefig("output/Fourier1D/susceptibilitet.png")
 plt.close()
 # energi som funktion af temp
-plt.plot(temps, energier, 'o-')
+plt.errorbar(temps, energier, yerr=np.sqrt(varmekapaciteter/counts), fmt='-')
 plt.xlabel("Temperatur")
 plt.ylabel("Energi")
 plt.title("Energi som funktion af temperatur")
 plt.savefig("output/Fourier1D/Energi.png")
 plt.close()
 # varmekapacitet som funktion af temp
-plt.plot(temps, varmekapaciteter, 'o-')
+#plt.plot(temps, varmekapaciteter, 'o-')
+plt.errorbar(temps, varmekapaciteter, yerr=np.sqrt(varmevarianser/counts), fmt='-')
 plt.xlabel("Temperatur")
 plt.ylabel("Varmekapacitet")
 plt.title("Varmekapacitet som funktion af temperatur")

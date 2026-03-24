@@ -11,10 +11,10 @@ def numeric_suffix_key(filename):
     suffix = stem.rsplit("_", 1)[-1]
     return int(suffix) if suffix.isdigit() else float("inf")
 
-parameterFiles = np.array(sorted(os.listdir("output/Fourier/parameters"), key=numeric_suffix_key))
-measurementFiles = np.array(sorted(os.listdir("output/Fourier/measurements"), key=numeric_suffix_key))
-kvadratFFTFiles = np.array(sorted(os.listdir("output/Fourier/kvadratFFT"), key=numeric_suffix_key))
-kvadratFFTVarFiles = np.array(sorted(os.listdir("output/Fourier/kvadratFFTvariance"), key=numeric_suffix_key))
+parameterFiles = np.array(sorted(os.listdir("output/Fourier/WolffFerroFirkant/parameters"), key=numeric_suffix_key))
+measurementFiles = np.array(sorted(os.listdir("output/Fourier/WolffFerroFirkant/measurements"), key=numeric_suffix_key))
+kvadratFFTFiles = np.array(sorted(os.listdir("output/Fourier/WolffFerroFirkant/kvadratFFT"), key=numeric_suffix_key))
+kvadratFFTVarFiles = np.array(sorted(os.listdir("output/Fourier/WolffFerroFirkant/kvadratFFTvariance"), key=numeric_suffix_key))
 
 print("Parameterfiler:", parameterFiles)
 print("Måledatafiler:", measurementFiles)
@@ -36,10 +36,10 @@ korrelationslængdePlots = []
 
 for j in range(0,antalStørrelser):
     
-    parameters = np.genfromtxt("output/Fourier/parameters/" + parameterFiles[j], delimiter=",")[:,:-1]
-    measurements = np.genfromtxt("output/Fourier/measurements/" + measurementFiles[j], delimiter=",")[:,:-1]
-    kvadratFFTs = np.genfromtxt("output/Fourier/kvadratFFT/" + kvadratFFTFiles[j], delimiter=",")[:,:-1]
-    kvadratFFTVars = np.genfromtxt("output/Fourier/kvadratFFTvariance/" + kvadratFFTVarFiles[j], delimiter=",")[:,:-1]
+    parameters = np.genfromtxt("output/Fourier/WolffFerroFirkant/parameters/" + parameterFiles[j], delimiter=",")[:,:-1]
+    measurements = np.genfromtxt("output/Fourier/WolffFerroFirkant/measurements/" + measurementFiles[j], delimiter=",")[:,:-1]
+    kvadratFFTs = np.genfromtxt("output/Fourier/WolffFerroFirkant/kvadratFFT/" + kvadratFFTFiles[j], delimiter=",")[:,:-1]
+    kvadratFFTVars = np.genfromtxt("output/Fourier/WolffFerroFirkant/kvadratFFTvariance/" + kvadratFFTVarFiles[j], delimiter=",")[:,:-1]
 
     
 
