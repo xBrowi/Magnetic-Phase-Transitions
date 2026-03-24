@@ -20,8 +20,8 @@ int main()
 
 
     //på 6 timer har vi 2.16e13 steps
-    std::vector<int> størrelser = {24,26,28,30,32,34,36,38,42,44,46,50,52,56,58,62,66,72,78,84,90}; // Adjust as needed
-    std::vector<double> temperaturer = {1.0, 1.5, 1.75, 2.0, 2.1, 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.30, 2.31, 2.32, 2.33, 2.34, 2.35, 2.36, 2.37, 2.38, 2.39, 2.4, 2.5, 2.75, 3, 3.5};
+    std::vector<int> størrelser = {24, 26, 28, 30, 32, 34, 36, 38, 42, 44, 46, 50, 52, 56, 58, 62, 66, 72, 78, 84, 90, 100, 105, 110, 118, 125, 134, 142, 154, 166, 180, 200}; // Adjust as needed
+    std::vector<double> temperaturer = {2.26, 2.261, 2.262, 2.263, 2.264, 2.265, 2.266, 2.267, 2.268, 2.269, 2.27, 2.271, 2.272, 2.273, 2.274, 2.275, 2.276, 2.277, 2.278, 2.279, 2.28}; // Adjust as needed
     //std::vector<int> størrelser = {50, 40, 32}; // Adjust as needed
     
     int totalSimulations = størrelser.size() * temperaturer.size();
@@ -47,12 +47,12 @@ int main()
             params.size = størrelser[i];
             params.temperature = T;
             params.B = 0.0;
-            params.totalStepCount = 1.25e10;     //5e10
-            params.measurementInterval = 1.25e6; //5e6
+            params.totalStepCount = 5e5;     //5e10
+            params.measurementInterval = 50; //5e6
             params.randomize = true;
             params.printProgress = false;
             params.stabilizing = 0.1;
-            params.stepAlgorithm = stepType::Metropolis;
+            params.stepAlgorithm = stepType::Wolff;
             params.wolffStabilizationSteps = 1; //3 // sæt til 0 for ingen Wolff stabilisering
 
             paramsList.push_back(params);
