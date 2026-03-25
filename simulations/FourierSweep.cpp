@@ -20,9 +20,9 @@ int main()
 
 
     //på 6 timer har vi 2.16e13 steps
-    std::vector<int> størrelser = {64}; // Adjust as needed
-    std::vector<double> magnetiseringer = {-1.5, -1.3, -1.1, -0.9, -0.7, -0.5, -0.3, -0.1, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5}; // Adjust as needed
-    std::vector<double> temperaturer = {1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9}; // Adjust as needed
+    std::vector<long int> størrelser = {24, 26, 28, 30, 32, 34, 36, 38, 42, 44, 46, 50, 52, 56, 58, 62, 66, 72, 78, 84, 90, 100, 105, 110, 118, 125, 134, 142, 154, 166, 180, 200}; // Adjust as needed
+    std::vector<double> magnetiseringer = {0}; // Adjust as needed
+    std::vector<double> temperaturer = {2.8, 2.9, 3.0, 3.05, 3.1, 3.15, 3.20, 3.22, 3.24, 3.26, 3.28, 3.30, 3.32, 3.34, 3.36, 3.38, 3.40, 3.42, 3.44, 3.46, 3.48, 3.5, 3.52, 3.54, 3.56, 3.58, 3.6, 3.62, 3.64, 3.66, 3.68, 3.7, 3.8, 3.9, 4.0}; // Adjust as needed
     //std::vector<int> størrelser = {50, 40, 32}; // Adjust as needed
     
     int totalSimulations = størrelser.size() * temperaturer.size();
@@ -46,17 +46,17 @@ int main()
             for (double B : magnetiseringer)
             {
                 MCParameters params;
-                params.latticeType = LatticeType::FunkySquare;
+                params.latticeType = LatticeType::Triangle;
                 params.size = størrelser[i];
                 params.temperature = T;
                 params.B = B;
-                params.totalStepCount = 1e7;     //5e10
-                params.measurementInterval = 1e5; //5e6
+                params.totalStepCount = 100*størrelser[i]*størrelser[i]*10000;     //5e10
+                params.measurementInterval = 100*størrelser[i]*størrelser[i]; //5e6
                 params.randomize = true;
                 params.printProgress = false;
                 params.stabilizing = 0.1;
                 params.stepAlgorithm = stepType::Metropolis;
-                params.wolffStabilizationSteps = 1; //3 // sæt til 0 for ingen Wolff stabilisering
+                params.wolffStabilizationSteps = 0; //3 // sæt til 0 for ingen Wolff stabilisering
 
                 paramsList.push_back(params);
             }
@@ -106,17 +106,10 @@ int main()
 
         }
 
-        //parameterFile.close();
-        //measurementsFile.close();
-        //FFTFile.close();
-        //FFTVarFile.close();
-        for (size_t i = 0; i < parameterFiles.size(); ++i)
-        {
-            parameterFiles[i].close();
-            measurementsFiles[i].close();
-            FFTFiles[i].close();
-            FFTVarFiles[i].close();
-        }
+        parameterFile.close();
+        measurementsFile.close();
+        FFTFile.close();
+        FFTVarFile.close();
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();

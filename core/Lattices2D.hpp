@@ -407,7 +407,7 @@ public:
             getSpin(n3) +
             getSpin(n4);
 
-        const double J = -1.0; // set J=-1 for antiferromagnetic interactions
+        const double J = 1.0; // set J=-1 for antiferromagnetic interactions
         return 2.0 * getSpin(p) * (B + J * neighborSum);
     }
 
