@@ -16,16 +16,16 @@ int main()
 
     MCParameters params;
 
-    params.latticeType = LatticeType::FunkySquare;
+    params.latticeType = LatticeType::Triangle;
     params.size = 200;
-    params.temperature = 2.28;
+    params.temperature = 3.45;
     params.B = 0.0;
-    params.totalStepCount = 1e5;
-    params.measurementInterval = 50;
+    params.totalStepCount = 1e9;
+    params.measurementInterval = 1e6; //magic number 50 for all wolffs
     params.randomize = true;
     params.printProgress = false;
     params.stabilizing = 0.0;
-    params.stepAlgorithm = stepType::Wolff;
+    params.stepAlgorithm = stepType::Metropolis;
     params.wolffStabilizationSteps = 0; // sæt til 0 for ingen Wolff stabilisering
 
     paramsList.push_back(params);

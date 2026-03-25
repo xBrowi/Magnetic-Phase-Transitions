@@ -34,7 +34,7 @@ int main()
         params.printProgress = false;
         params.stabilizing = 0.2;
         params.stepAlgorithm = stepType::Metropolis;
-        params.wolffStabilizationSteps = 5; // sæt til 0 for ingen Wolff stabilisering
+        params.wolffStabilizationSteps = 0; // sæt til 0 for ingen Wolff stabilisering
 
         paramsList.push_back(params);
     }

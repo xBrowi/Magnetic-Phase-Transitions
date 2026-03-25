@@ -180,10 +180,10 @@ public:
             measurementTracker.normKvadratKvadratSum[i] += normKvadrat[i] * normKvadrat[i];
         }
 
-        measurementTracker.magnetiseringSum += std::sqrt(normKvadrat[0]) / (N); // magnetisering er norm af k=0 komponenten, normaliseret
-        measurementTracker.magnetiseringKvadratSum += (normKvadrat[0]) / (N * N); // kvadratet af magnetiseringen
-        measurementTracker.magnetiseringKubeSum += (normKvadrat[0] * std::sqrt(normKvadrat[0])) / (N * N * N); // kuben af magnetiseringen, normaliseret
-        measurementTracker.magnetiseringKvadratKvadratSum += (normKvadrat[0] * normKvadrat[0]) / (float(N) * float(N) * float(N) * float(N)); // kvadratet af magnetiseringen, kvadreret igen
+        measurementTracker.magnetiseringSum += std::sqrt(normKvadrat[0]) / double(N); // magnetisering er norm af k=0 komponenten, normaliseret
+        measurementTracker.magnetiseringKvadratSum += (normKvadrat[0]) / (double(N) * double(N)); // kvadratet af magnetiseringen
+        measurementTracker.magnetiseringKubeSum += (normKvadrat[0] * std::sqrt(normKvadrat[0])) / (double(N) * double(N) * double(N)); // kuben af magnetiseringen, normaliseret
+        measurementTracker.magnetiseringKvadratKvadratSum += (normKvadrat[0] * normKvadrat[0]) / (double(N) * double(N) * double(N) * double(N)); // kvadratet af magnetiseringen, kvadreret igen
         
         //std::cout << "magnetisering, varians og variansvarians, " << normKvadrat[0] << ", " << measurementTracker.magnetiseringKvadratSum << ", " << measurementTracker.magnetiseringKvadratKvadratSum << "\n";
 
